@@ -11,5 +11,6 @@ def addDocument(id, body):
     documents[id] = body
 
 def similarById(id):
-    pass
-
+    if id not in documents:
+        return 'Not Found', 404
+    return [{"id": id, "score": 0} for id in documents.keys()]

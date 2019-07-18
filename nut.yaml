@@ -37,7 +37,7 @@ paths:
           description: Document response
         404:
           description: Document not found
-      operationId: findById
+      operationId: api.findById
       summary: Get a specific document from the repository
       description: Return a document base on its id
     post:
@@ -52,7 +52,7 @@ paths:
           description: Document added
         409:
           description: Document already exists
-      operationId: addDocument
+      operationId: api.addDocument
       summary: Add a document to the repository
       description: Add a document to the repository. The user of this operation is
         required to provide the document's body and id. Duplicate ids are not allowed.
@@ -79,7 +79,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/Document'
           description: Documents
-      operationId: similarById
+      operationId: api.similarById
       summary: Find similar documents
     parameters:
     - name: id

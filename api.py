@@ -4,8 +4,9 @@ import minhash
 # TODO: remove magic 42
 
 print("initializing...")
-ids = np.ndarray((0,), dtype='<U42') # TODO: find appropriate id length
-sigs = np.ndarray((0, 42), dtype=int)
+end = 0
+ids = np.ndarray((42,), dtype='<U42') # TODO: find appropriate id length
+sigs = np.ndarray((42, 42), dtype=int)
 hash_funcs = list(minhash.generate_hash_funcs(42))
 
 def addDocuments(body):
@@ -19,16 +20,20 @@ def addDocuments(body):
     return {"accepted": accepted, "rejected": rejected}
 
 def addDocument(id, body):
+    global end
+
     if id in ids:
         return 'Document already exists', 409
 
-    # TODO: make growing efficient
-    ids.resize((len(ids) + 1,))
-    sigs.resize((len(sigs) + 1, 42))
+    end += 1
 
-    ids[-1] = id
+    if end == len(ids):
+        ids.resize((int(end * 1.25),))
+        sigs.resize((int(end * 1.25), 42))
+
+    ids[end] = id
     shingles = list(minhash.generate_shingles(body.split(" ")))
-    sigs[-1] = minhash.calculate_signature(shingles, hash_funcs)
+    sigs[end] = minhash.calculate_signature(shingles, hash_funcs)
 
 
 def similarById(id):

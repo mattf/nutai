@@ -10,22 +10,13 @@ curl -d '"z e r o"' -H 'Content-Type: application/json' 127.1:5000/documents/0
 : 200
 
 curl 127.1:5000/documents/0
-: "z e r o"
+: '[{"id": "0", "score": 0}]'
 
-curl -d '"z e r o"' -H 'Content-Type: application/json' 127.1:5000/documents/0
+curl -d '"o r e z"' -H 'Content-Type: application/json' 127.1:5000/documents/0
 : "Document already exists"
 
 curl -d '"o n e"' -H 'Content-Type: application/json' 127.1:5000/documents/1
 : 200
 
 curl 127.1:5000/documents/1
-: "o n e"
-
-curl 127.1:5000/documents/2
-: "Not Found"
-
-curl 127.1:5000/documents/2/similar
-: "Not Found"
-
-curl 127.1:5000/documents/0/similar
 : '[{"id": "0", "score": 0}, {"id": "1", "score": 0}]'

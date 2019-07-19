@@ -33,11 +33,13 @@ paths:
           content:
             application/json:
               schema:
-                type: string
+                type: array
+                items:
+                  $ref: '#/components/schemas/Document'
           description: Document response
         404:
           description: Document not found
-      operationId: api.findById
+      operationId: api.similarById
       summary: Get a specific document from the repository
       description: Return a document base on its id
     post:
@@ -56,31 +58,6 @@ paths:
       summary: Add a document to the repository
       description: Add a document to the repository. The user of this operation is
         required to provide the document's body and id. Duplicate ids are not allowed.
-    parameters:
-    - name: id
-      schema:
-        type: string
-      in: path
-      required: true
-  /documents/{id}/similar:
-    get:
-      parameters:
-      - name: id
-        schema:
-          type: string
-        in: path
-        required: true
-      responses:
-        200:
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Document'
-          description: Documents
-      operationId: api.similarById
-      summary: Find similar documents
     parameters:
     - name: id
       schema:

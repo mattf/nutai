@@ -35,7 +35,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Document'
+                  $ref: '#/components/schemas/LookupResponse'
           description: Document response
         404:
           description: Document not found
@@ -64,6 +64,25 @@ paths:
         type: string
       in: path
       required: true
+  /documents:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Document'
+        required: true
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BulkAddResponse'
+          description: Documents added
+      operationId: api.addDocuments
+      summary: Add a set of documents to the repository
 components:
   schemas:
     Error:
@@ -77,6 +96,33 @@ components:
         message:
           type: string
     Document:
+      description: ""
+      required:
+      - id
+      - content
+      type: object
+      properties:
+        id:
+          description: ""
+          type: string
+        content:
+          description: ""
+          type: string
+    BulkAddResponse:
+      description: ""
+      type: object
+      properties:
+        accepted:
+          description: ""
+          type: array
+          items:
+            type: string
+        rejected:
+          description: ""
+          type: array
+          items:
+            type: string
+    LookupResponse:
       description: ""
       required:
       - id

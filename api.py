@@ -12,6 +12,9 @@ class Store:
     def __contains__(self, id):
         return id in self.ids
 
+    def __len__(self):
+        return len(self.ids)
+
 
 print("initializing...")
 store = Store()
@@ -33,7 +36,7 @@ def addDocument(id, body):
 
     store.end += 1
 
-    if store.end == len(store.ids):
+    if store.end == len(store):
         store.ids.resize((int(store.end * 1.25),))
         store.sigs.resize((int(store.end * 1.25), 42))
 

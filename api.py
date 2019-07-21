@@ -12,12 +12,9 @@ class Store:
     def __contains__(self, id):
         return id in self.ids
 
-    def __len__(self):
-        return len(self.ids)
-
     def add(self, id, sig):
         self._end += 1
-        if self._end == len(self):
+        if self._end == len(self.ids):
             self.ids.resize((int(self._end * 1.25),))
             self.sigs.resize((int(self._end * 1.25), 42))
         self.ids[self._end] = id

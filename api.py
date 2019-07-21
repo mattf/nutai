@@ -5,7 +5,7 @@ import minhash
 
 class Store:
     def __init__(self):
-        self.end = 0
+        self._end = 0
         self.ids = np.ndarray((42,), dtype='<U42') # TODO: find appropriate id length
         self.sigs = np.ndarray((42, 42), dtype=int)
 
@@ -16,12 +16,12 @@ class Store:
         return len(self.ids)
 
     def add(self, id, sig):
-        self.end += 1
-        if self.end == len(self):
-            self.ids.resize((int(self.end * 1.25),))
-            self.sigs.resize((int(self.end * 1.25), 42))
-        self.ids[self.end] = id
-        self.sigs[self.end] = sig
+        self._end += 1
+        if self._end == len(self):
+            self.ids.resize((int(self._end * 1.25),))
+            self.sigs.resize((int(self._end * 1.25), 42))
+        self.ids[self._end] = id
+        self.sigs[self._end] = sig
 
 
 print("initializing...")

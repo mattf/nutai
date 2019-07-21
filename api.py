@@ -34,12 +34,12 @@ class Store:
         return id in self.ids
 
     def add(self, id, sig):
-        self._end += 1
         if self._end == len(self.ids):
             self.ids.resize((int(self._end * 1.25),))
             self.sigs.resize((int(self._end * 1.25), 42))
         self.ids[self._end] = id
         self.sigs[self._end] = sig
+        self._end += 1
         self.r.rpush(self.key, json.dumps({"id":id,"sig":sig.tolist()}))
 
 

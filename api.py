@@ -3,10 +3,14 @@ import minhash
 
 # TODO: remove magic 42
 
+class Store:
+    def __init__(self):
+        self.end = 0
+        self.ids = np.ndarray((42,), dtype='<U42') # TODO: find appropriate id length
+        self.sigs = np.ndarray((42, 42), dtype=int)
+
 print("initializing...")
-end = 0
-ids = np.ndarray((42,), dtype='<U42') # TODO: find appropriate id length
-sigs = np.ndarray((42, 42), dtype=int)
+store = Store()
 hash_funcs = list(minhash.generate_hash_funcs(42))
 
 def addDocuments(body):
@@ -20,30 +24,28 @@ def addDocuments(body):
     return {"accepted": accepted, "rejected": rejected}
 
 def addDocument(id, body):
-    global end
-
-    if id in ids:
+    if id in store.ids:
         return 'Document already exists', 409
 
-    end += 1
+    store.end += 1
 
-    if end == len(ids):
-        ids.resize((int(end * 1.25),))
-        sigs.resize((int(end * 1.25), 42))
+    if store.end == len(store.ids):
+        store.ids.resize((int(store.end * 1.25),))
+        store.sigs.resize((int(store.end * 1.25), 42))
 
-    ids[end] = id
+    store.ids[store.end] = id
     shingles = list(minhash.generate_shingles(body.split(" ")))
-    sigs[end] = minhash.calculate_signature(shingles, hash_funcs)
+    store.sigs[store.end] = minhash.calculate_signature(shingles, hash_funcs)
 
 
 def similarById(id):
-    if id not in ids:
+    if id not in store.ids:
         return 'Not Found', 404
 
-    sig = sigs[ids == id][0]
-    scores = minhash.approx_jaccard_score(sig, sigs, 1)
+    sig = store.sigs[store.ids == id][0]
+    scores = minhash.approx_jaccard_score(sig, store.sigs, 1)
     hits = scores > .42 # TODO: find appropriate threshold
 
     return [{"id": id, "score": score}
-            for id, score in zip(ids[hits],
+            for id, score in zip(store.ids[hits],
                                  (scores[hits]*100).astype(int).tolist())]

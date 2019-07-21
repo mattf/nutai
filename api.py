@@ -7,6 +7,8 @@ import json
 
 class NullRedis:
     def rpush(self, k, v): pass
+    def llen(self, k): return 42
+    def lrange(self, k, x, y): return []
 
 class Store:
     def __init__(self):
@@ -16,8 +18,15 @@ class Store:
         except:
             self.r = NullRedis()
         self._end = 0
-        self.ids = np.ndarray((42,), dtype='<U42') # TODO: find appropriate id length
-        self.sigs = np.ndarray((42, 42), dtype=int)
+        len_ = max(self.r.llen('sigs'), 42) # if redis is empty, don't start w/ 0 len
+        self.ids = np.ndarray((len_,), dtype='<U42') # TODO: find appropriate id length
+        self.sigs = np.ndarray((len_, 42), dtype=int)
+        for raw in self.r.lrange('sigs', 0, len_):
+            data = json.loads(raw)
+            self.ids[self._end] = data['id']
+            self.sigs[self._end] = np.array(data['sig'])
+            self._end += 1
+        print("loaded", self._end, "signatures")
 
     def __contains__(self, id):
         return id in self.ids

@@ -15,6 +15,14 @@ class Store:
     def __len__(self):
         return len(self.ids)
 
+    def add(self, id, sig):
+        self.end += 1
+        if self.end == len(self):
+            self.ids.resize((int(self.end * 1.25),))
+            self.sigs.resize((int(self.end * 1.25), 42))
+        self.ids[self.end] = id
+        self.sigs[self.end] = sig
+
 
 print("initializing...")
 store = Store()
@@ -34,16 +42,8 @@ def addDocument(id, body):
     if id in store:
         return 'Document already exists', 409
 
-    store.end += 1
-
-    if store.end == len(store):
-        store.ids.resize((int(store.end * 1.25),))
-        store.sigs.resize((int(store.end * 1.25), 42))
-
-    store.ids[store.end] = id
     shingles = list(minhash.generate_shingles(body.split(" ")))
-    store.sigs[store.end] = minhash.calculate_signature(shingles, hash_funcs)
-
+    store.add(id, minhash.calculate_signature(shingles, hash_funcs))
 
 def similarById(id):
     if id not in store:

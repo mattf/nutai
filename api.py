@@ -1,10 +1,20 @@
 import numpy as np
 import minhash
+import redis
+import json
 
 # TODO: remove magic 42
 
+class NullRedis:
+    def rpush(self, k, v): pass
+
 class Store:
     def __init__(self):
+        try:
+            self.r = redis.Redis()
+            self.r.echo("morning")
+        except:
+            self.r = NullRedis()
         self._end = 0
         self.ids = np.ndarray((42,), dtype='<U42') # TODO: find appropriate id length
         self.sigs = np.ndarray((42, 42), dtype=int)
@@ -19,6 +29,7 @@ class Store:
             self.sigs.resize((int(self._end * 1.25), 42))
         self.ids[self._end] = id
         self.sigs[self._end] = sig
+        self.r.rpush('sigs', json.dumps({"id":id,"sig":sig.tolist()}))
 
 
 print("initializing...")

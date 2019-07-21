@@ -11,6 +11,8 @@ class NullRedis:
     def lrange(self, k, x, y): return []
 
 class Store:
+    key = 'sigs'
+
     def __init__(self):
         try:
             self.r = redis.Redis()
@@ -18,10 +20,10 @@ class Store:
         except:
             self.r = NullRedis()
         self._end = 0
-        len_ = max(self.r.llen('sigs'), 42) # if redis is empty, don't start w/ 0 len
+        len_ = max(self.r.llen(self.key), 42) # if redis is empty, don't start w/ 0 len
         self.ids = np.ndarray((len_,), dtype='<U42') # TODO: find appropriate id length
         self.sigs = np.ndarray((len_, 42), dtype=int)
-        for raw in self.r.lrange('sigs', 0, len_):
+        for raw in self.r.lrange(self.key, 0, len_):
             data = json.loads(raw)
             self.ids[self._end] = data['id']
             self.sigs[self._end] = np.array(data['sig'])
@@ -38,7 +40,7 @@ class Store:
             self.sigs.resize((int(self._end * 1.25), 42))
         self.ids[self._end] = id
         self.sigs[self._end] = sig
-        self.r.rpush('sigs', json.dumps({"id":id,"sig":sig.tolist()}))
+        self.r.rpush(self.key, json.dumps({"id":id,"sig":sig.tolist()}))
 
 
 print("initializing...")

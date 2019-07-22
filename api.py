@@ -1,5 +1,6 @@
 import os
 import random
+import time
 
 import numpy as np
 import minhash
@@ -8,7 +9,7 @@ import json
 
 # TODO: remove magic 42
 
-seed = os.getenv('SEED')
+seed = os.getenv('SEED', int(time.time()))
 random.seed(seed)
 print("using seed:", seed)
 
@@ -23,7 +24,7 @@ class Store:
     #  0. hash functions (# hashes, coeffs, prime modulus)
     #  1. input processing  (generate_shingles)
     # TODO: capture version of input processor
-    key = 'sigs:42:' + seed
+    key = 'sigs:42:' + str(seed)
 
     def __init__(self):
         print("key:", self.key)

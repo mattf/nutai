@@ -71,3 +71,18 @@ def test_parallel_add_duplicate_document():
         assert code == 409
         assert nut0.status()["_end"] == 1
         assert nut1.status()["_end"] == 1
+
+def test_parallel_add_second_document():
+    # mock os.getenv("SEED")
+    os.getenv = lambda key, default=None: "42"
+    with TestSpace() as key:
+        nut0, nut1 = api.Nut(key=key), api.Nut(key=key)
+        assert nut0.store != nut1.store
+        assert nut0.store.r != nut1.store.r
+        assert nut0.store.key == nut1.store.key
+        assert nut0.addDocument("0", "a b c") is None
+        assert nut1.addDocument("1", "x y z") is None
+        assert len(nut0.similarById("1")) == 1
+        assert len(nut1.similarById("0")) == 1
+        assert nut0.status()["_end"] == 2
+        assert nut1.status()["_end"] == 2

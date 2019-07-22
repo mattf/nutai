@@ -59,8 +59,10 @@ class Store:
     def add(self, id, sig):
         self._catch_up()
         if self._end == len(self.ids):
-            self.ids.resize((int(self._end * 1.25),))
-            self.sigs.resize((int(self._end * 1.25), 42))
+            # if redis gave us < 4 items, _end will be too small to grow w/ *1.25
+            size = max(42, int(self._end * 1.25))
+            self.ids.resize((size,))
+            self.sigs.resize((size, 42))
         self.ids[self._end] = id
         self.sigs[self._end] = sig
         self._end += 1

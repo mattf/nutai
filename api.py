@@ -44,8 +44,8 @@ class Store:
         # while local knowledge trails global,
         #    pull down additional global knowledge
         len_ = self.r.llen(self.key)
-        while self._end + 1 < len_:
-            unknown = self.r.lrange(self.key, self._end + 1, len_)
+        while self._end < len_:
+            unknown = self.r.lrange(self.key, self._end, len_)
             self.ids.resize((len_,))
             self.sigs.resize((len_, 42))
             for raw in unknown:

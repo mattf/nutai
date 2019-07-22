@@ -7,7 +7,7 @@ import json
 
 class NullRedis:
     def rpush(self, k, v): pass
-    def llen(self, k): return 42
+    def llen(self, k): return 0
     def lrange(self, k, x, y): return []
 
 class Store:

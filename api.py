@@ -46,7 +46,7 @@ class Store:
                 self.sigs[self._end] = np.array(pair['sig'])
                 self._end += 1
             len_ = self.r.llen(self.key) # TODO: find a way to avoid infinite loop
-        return self._end - count + 1
+        return self._end - count
 
     def add(self, id, sig):
         print("loaded", self._catch_up(), "signatures")

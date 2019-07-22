@@ -15,6 +15,7 @@ class NullRedis:
     def llen(self, k): return 0
     def lrange(self, k, x, y): return []
     def info(self): return "fake, no redis"
+    def echo(self, msg): return msg
 
 class Store:
     def __init__(self, key):

@@ -73,7 +73,7 @@ class Store:
 
 
 class Nut:
-    def __init__(self):
+    def __init__(self, key=None):
         print("initializing...")
         seed = os.getenv('SEED', int(time.time()))
         random.seed(seed)
@@ -82,7 +82,7 @@ class Nut:
         #  0. hash functions (# hashes, coeffs, prime modulus)
         #  1. input processing  (generate_shingles)
         # TODO: capture version of input processor
-        self.store = Store(key='sigs:42:' + str(seed))
+        self.store = Store(key=(key or 'sigs:42:' + str(seed)))
         self.hash_funcs = list(minhash.generate_hash_funcs(42))
 
     def addDocuments(self, body):

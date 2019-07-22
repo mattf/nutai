@@ -11,6 +11,15 @@ class MockRedis:
     def __exit__(self, type, value, traceback):
         redis.Redis = self.real_redis
 
+class TestSpace:
+    def __enter__(self):
+        self.r = redis.Redis()
+        self.r.ping()
+        self.key = "test-key"
+        return self.key
+    def __exit__(self, type, value, traceback):
+        self.r.delete(self.key)
+
 def test_get_unknown_document():
     with MockRedis():
         nut = api.Nut()

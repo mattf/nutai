@@ -9,10 +9,6 @@ import json
 
 # TODO: remove magic 42
 
-seed = os.getenv('SEED', int(time.time()))
-random.seed(seed)
-print("using seed:", seed)
-
 
 class NullRedis:
     def rpush(self, k, v): pass
@@ -21,13 +17,8 @@ class NullRedis:
     def info(self): return "fake, no redis"
 
 class Store:
-    # signatures are only comparable when they have the same
-    #  0. hash functions (# hashes, coeffs, prime modulus)
-    #  1. input processing  (generate_shingles)
-    # TODO: capture version of input processor
-    key = 'sigs:42:' + str(seed)
-
-    def __init__(self):
+    def __init__(self, key):
+        self.key = key
         print("key:", self.key)
         try:
             self.r = redis.Redis()
@@ -80,43 +71,52 @@ class Store:
         #       they have the same contents
 
 
-print("initializing...")
-store = Store()
-hash_funcs = list(minhash.generate_hash_funcs(42))
+class Nut:
+    def __init__(self):
+        print("initializing...")
+        seed = os.getenv('SEED', int(time.time()))
+        random.seed(seed)
+        print("using seed:", seed)
+        # signatures are only comparable when they have the same
+        #  0. hash functions (# hashes, coeffs, prime modulus)
+        #  1. input processing  (generate_shingles)
+        # TODO: capture version of input processor
+        self.store = Store(key='sigs:42:' + str(seed))
+        self.hash_funcs = list(minhash.generate_hash_funcs(42))
 
-def addDocuments(body):
-    accepted = []
-    rejected = []
-    for doc in body:
-        if addDocument(doc['id'], doc['content']):
-            rejected.append(doc['id'])
-        else:
-            accepted.append(doc['id'])
-    return {"accepted": accepted, "rejected": rejected}
+    def addDocuments(self, body):
+        accepted = []
+        rejected = []
+        for doc in body:
+            if self.addDocument(doc['id'], doc['content']):
+                rejected.append(doc['id'])
+            else:
+                accepted.append(doc['id'])
+        return {"accepted": accepted, "rejected": rejected}
 
-def addDocument(id, body):
-    if id in store:
-        return 'Document already exists', 409
+    def addDocument(self, id, body):
+        if id in self.store:
+            return 'Document already exists', 409
 
-    shingles = list(minhash.generate_shingles(body.split(" ")))
-    store.add(id, minhash.calculate_signature(shingles, hash_funcs))
+        shingles = list(minhash.generate_shingles(body.split(" ")))
+        self.store.add(id, minhash.calculate_signature(shingles, self.hash_funcs))
 
-def similarById(id):
-    if id not in store:
-        return 'Not Found', 404
+    def similarById(self, id):
+        if id not in self.store:
+            return 'Not Found', 404
 
-    sig = store.sigs[store.ids == id][0]
-    scores = minhash.approx_jaccard_score(sig, store.sigs, 1)
-    hits = scores > .42 # TODO: find appropriate threshold
+        sig = self.store.sigs[self.store.ids == id][0]
+        scores = minhash.approx_jaccard_score(sig, self.store.sigs, 1)
+        hits = scores > .42 # TODO: find appropriate threshold
 
-    return [{"id": id, "score": score}
-            for id, score in zip(store.ids[hits],
-                                 (scores[hits]*100).astype(int).tolist())]
+        return [{"id": id, "score": score}
+                for id, score in zip(self.store.ids[hits],
+                                     (scores[hits]*100).astype(int).tolist())]
 
-def status():
-    return {'_end': store._end,
-            'redis': store.r.info(),
-            'len(ids)': len(store.ids),
-            'ids': store.ids.tolist(),
-            'len(sigs)': len(store.sigs),
-            'sigs': store.sigs.tolist()}
+    def status(self):
+        return {'_end': self.store._end,
+                'redis': self.store.r.info(),
+                'len(ids)': len(self.store.ids),
+                'ids': self.store.ids.tolist(),
+                'len(sigs)': len(self.store.sigs),
+                'sigs': self.store.sigs.tolist()}

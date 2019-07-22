@@ -57,3 +57,17 @@ def test_parallel_add_single_document():
         assert len(nut1.similarById("0")) == 1
         assert nut0.status()["_end"] == 1
         assert nut1.status()["_end"] == 1
+
+def test_parallel_add_duplicate_document():
+    # mock os.getenv("SEED")
+    os.getenv = lambda key, default=None: "42"
+    with TestSpace() as key:
+        nut0, nut1 = api.Nut(key=key), api.Nut(key=key)
+        assert nut0.store != nut1.store
+        assert nut0.store.r != nut1.store.r
+        assert nut0.store.key == nut1.store.key
+        assert nut0.addDocument("0", "a b c") is None
+        _, code = nut1.addDocument("0", "x y z")
+        assert code == 409
+        assert nut0.status()["_end"] == 1
+        assert nut1.status()["_end"] == 1

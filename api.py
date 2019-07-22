@@ -19,9 +19,14 @@ class NullRedis:
     def lrange(self, k, x, y): return []
 
 class Store:
-    key = 'sigs'
+    # signatures are only comparable when they have the same
+    #  0. hash functions (# hashes, coeffs, prime modulus)
+    #  1. input processing  (generate_shingles)
+    # TODO: capture version of input processor
+    key = 'sigs:42:' + seed
 
     def __init__(self):
+        print("key:", self.key)
         try:
             self.r = redis.Redis()
             self.r.echo("morning")

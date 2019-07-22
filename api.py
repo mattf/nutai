@@ -18,6 +18,7 @@ class NullRedis:
     def rpush(self, k, v): pass
     def llen(self, k): return 0
     def lrange(self, k, x, y): return []
+    def info(self): return "fake, no redis"
 
 class Store:
     # signatures are only comparable when they have the same
@@ -111,3 +112,11 @@ def similarById(id):
     return [{"id": id, "score": score}
             for id, score in zip(store.ids[hits],
                                  (scores[hits]*100).astype(int).tolist())]
+
+def status():
+    return {'_end': store._end,
+            'redis': store.r.info(),
+            'len(ids)': len(store.ids),
+            'ids': store.ids.tolist(),
+            'len(sigs)': len(store.sigs),
+            'sigs': store.sigs.tolist()}

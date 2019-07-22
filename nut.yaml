@@ -83,6 +83,14 @@ paths:
           description: Documents added
       operationId: api.addDocuments
       summary: Add a set of documents to the repository
+  /status:
+    get:
+      responses:
+        200:
+          content:
+            application/json: {}
+          description: Status
+      operationId: api.status
 components:
   schemas:
     Error:

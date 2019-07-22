@@ -1,9 +1,17 @@
+import os
+import random
+
 import numpy as np
 import minhash
 import redis
 import json
 
 # TODO: remove magic 42
+
+seed = os.getenv('SEED')
+random.seed(seed)
+print("using seed:", seed)
+
 
 class NullRedis:
     def rpush(self, k, v): pass

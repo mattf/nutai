@@ -49,7 +49,7 @@ class Store:
         return self._end - count
 
     def add(self, id, sig):
-        print("loaded", self._catch_up(), "signatures")
+        self._catch_up()
         if self._end == len(self.ids):
             self.ids.resize((int(self._end * 1.25),))
             self.sigs.resize((int(self._end * 1.25), 42))

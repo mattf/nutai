@@ -26,6 +26,7 @@ class Store:
         print("loaded", self._catch_up(), "signatures")
 
     def __contains__(self, id):
+        self._catch_up()
         return id in self.ids
 
     def _catch_up(self):

@@ -68,6 +68,12 @@ def test_get_too_long_id():
         _, code = nut.similarById(id_)
         assert code == 404
 
+def test_compare0():
+    with MockRedis():
+        nut = api.Nut()
+        assert nut.addDocument("0", "a b c") is None
+        assert len(nut.similarByContent("a b c")) == 1
+
 def test_parallel_add_single_document():
     # mock os.getenv("SEED")
     os.getenv = lambda key, default=None: "42"

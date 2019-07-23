@@ -1,0 +1,28 @@
+diff --git a/nut.yaml b/nut.yaml
+index 7949181..fcc2f81 100644
+--- a/nut.yaml
++++ b/nut.yaml
+@@ -20,6 +20,7 @@ paths:
+         description: Id of document to fetch
+         schema:
+           type: string
++          maxLength: 42
+         in: path
+         required: true
+       responses:
+@@ -62,6 +63,7 @@ paths:
+     - name: id
+       schema:
+         type: string
++        maxLength: 42
+       in: path
+       required: true
+   /documents:
+@@ -113,6 +115,7 @@ components:
+         id:
+           description: ""
+           type: string
++          maxLength: 42
+         content:
+           description: ""
+           type: string

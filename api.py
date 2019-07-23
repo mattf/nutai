@@ -120,8 +120,14 @@ class Nut:
                                      (scores[hits]*100).astype(int).tolist())]
 
     def similarByContent(self, content):
-        print("similarBy", content)
-        return []
+        shingles = list(minhash.generate_shingles(content.split(" ")))
+        sig = minhash.calculate_signature(shingles, self.hash_funcs)
+        scores = minhash.approx_jaccard_score(sig, self.store.sigs, 1)
+        hits = scores > .42 # TODO: find appropriate threshold
+
+        return [{"id": id, "score": score}
+                for id, score in zip(self.store.ids[hits],
+                                     (scores[hits]*100).astype(int).tolist())]
 
     def status(self):
         return {'_end': self.store._end,

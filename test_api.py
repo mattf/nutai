@@ -4,6 +4,8 @@ import redis
 
 import api
 
+# TODO: add tests for addDocuments
+
 class MockRedis:
     def __enter__(self):
         # mock up Redis

@@ -13,14 +13,68 @@ info:
     name: GNU AGPLv3
     url: https://www.gnu.org/licenses/agpl.txt
 paths:
+  /documents:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Document'
+        required: true
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BulkAddResponse'
+          description: Documents added
+      operationId: api.addDocuments
+      summary: Add a set of documents to the repository
+  /status:
+    get:
+      responses:
+        200:
+          content:
+            application/json: {}
+          description: Status
+      operationId: api.status
+  /documents/compare:
+    get:
+      parameters:
+      - name: content
+        description: Document contents to compare with repository
+        schema:
+          type: string
+        in: query
+        required: true
+      responses:
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: unexpected error
+        200:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LookupResponse'
+          description: Document response
+      operationId: api.similarByContent
+      summary: Get similar documents
+      description: Return a set of documents similar to the provided content
   /documents/{id}:
     get:
       parameters:
       - name: id
         description: Id of document to fetch
         schema:
-          type: string
           maxLength: 42
+          type: string
         in: path
         required: true
       responses:
@@ -62,37 +116,10 @@ paths:
     parameters:
     - name: id
       schema:
-        type: string
         maxLength: 42
+        type: string
       in: path
       required: true
-  /documents:
-    post:
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: array
-              items:
-                $ref: '#/components/schemas/Document'
-        required: true
-      responses:
-        200:
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BulkAddResponse'
-          description: Documents added
-      operationId: api.addDocuments
-      summary: Add a set of documents to the repository
-  /status:
-    get:
-      responses:
-        200:
-          content:
-            application/json: {}
-          description: Status
-      operationId: api.status
 components:
   schemas:
     Error:
@@ -104,20 +131,6 @@ components:
           format: int32
           type: integer
         message:
-          type: string
-    Document:
-      description: ""
-      required:
-      - id
-      - content
-      type: object
-      properties:
-        id:
-          description: ""
-          type: string
-          maxLength: 42
-        content:
-          description: ""
           type: string
     BulkAddResponse:
       description: ""
@@ -145,3 +158,17 @@ components:
         score:
           description: Similarity score
           type: integer
+    Document:
+      description: ""
+      required:
+      - id
+      - content
+      type: object
+      properties:
+        id:
+          description: ""
+          maxLength: 42
+          type: string
+        content:
+          description: ""
+          type: string

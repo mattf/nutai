@@ -119,6 +119,10 @@ class Nut:
                 for id, score in zip(self.store.ids[hits],
                                      (scores[hits]*100).astype(int).tolist())]
 
+    def similarByContent(self, content):
+        print("similarBy", content)
+        return []
+
     def status(self):
         return {'_end': self.store._end,
                 'redis': self.store.r.info(),

@@ -45,6 +45,29 @@ def test_add_duplicate_document():
         assert code == 409
         assert nut.status()["_end"] == 1
 
+def test_add_too_long_id():
+    with MockRedis():
+        nut = api.Nut()
+        id_ = "0" * 128
+        _, code = nut.addDocument(id_, "a b c")
+        assert code == 400
+        assert nut.status()["_end"] == 0
+
+def test_add_max_length_id():
+    with MockRedis():
+        nut = api.Nut()
+        id_ = "0" * 42
+        assert nut.addDocument(id_, "a b c") is None
+        assert len(nut.similarById(id_)) == 1
+        assert nut.status()["_end"] == 1
+
+def test_get_too_long_id():
+    with MockRedis():
+        nut = api.Nut()
+        id_ = "0" * 128
+        _, code = nut.similarById(id_)
+        assert code == 404
+
 def test_parallel_add_single_document():
     # mock os.getenv("SEED")
     os.getenv = lambda key, default=None: "42"

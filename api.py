@@ -98,6 +98,9 @@ class Nut:
         return {"accepted": accepted, "rejected": rejected}
 
     def addDocument(self, id, body):
+        if len(id) > 42:
+            return 'Id too long', 400
+
         if id in self.store:
             return 'Document already exists', 409
 

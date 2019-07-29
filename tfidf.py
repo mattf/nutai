@@ -19,6 +19,7 @@ class Timer:
             print(self.message, ":", self.interval)
 
 def __main__():
+    # TODO: fingerprint docs.json and link to scores
     with open("docs.json") as fp:
         data = json.load(fp)
         ids = np.zeros((len(data),), dtype=int)

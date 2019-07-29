@@ -22,7 +22,7 @@ def __main__():
         data = json.load(fp)
         ids = np.zeros((len(data),), dtype=int)
         texts = []
-        for i, doc in enumerate(tqdm(data, "loading")):
+        for i, doc in enumerate(tqdm(data, desc="loading docs")):
             ids[i] = doc['id']
             texts.append(gensim.utils.simple_preprocess(doc['text']))
     print(len(ids), ":", " ".join(map(str,ids[1:5])), "...", " ".join(map(str,ids[-4:])))

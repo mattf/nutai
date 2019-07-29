@@ -43,7 +43,7 @@ def __main__():
         scores = [sim for sim in tqdm(index, desc="scoring")]
         with Timer("saving time"):
             with open(score_file, "w") as fp:
-                json.dump([row.tolist() for row in tqdm(scores, desc="saving scores")], fp)
+                json.dump([((row*1000).astype(int)/1000).tolist() for row in tqdm(scores, desc="saving scores")], fp)
     else:
         with Timer("loading scores time"):
             with open(score_file) as fp:

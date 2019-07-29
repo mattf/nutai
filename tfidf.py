@@ -20,7 +20,7 @@ def __main__():
     with Timer("load time"):
         with open("docs.json") as fp:
             data = json.load(fp)
-            ids = [doc['id'] for doc in data]
+            ids = np.array([doc['id'] for doc in data])
             texts = [gensim.utils.simple_preprocess(doc['text']) for doc in data]
         print(len(ids), ":", " ".join(map(str,ids[1:5])), "...", " ".join(map(str,ids[-4:])))
 
@@ -51,10 +51,10 @@ def __main__():
 
     with open("discovered_dups", "w") as fp:
         threshold = .7
-        for i in range(len(scores)):
-            for j in range(i + 1, len(scores)):
-                if threshold < scores[i][j] and scores[i][j] < 1:
-                    print(ids[i], ids[j], scores[i][j], file=fp)
+        for i, row in enumerate(scores):
+            hits = np.logical_and(row > threshold, row < 1)
+            for id_, score in zip(ids[hits], row[hits]):
+                print(ids[i], id_, score, file=fp)
 
 
 if __name__ == "__main__":

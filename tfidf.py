@@ -53,7 +53,7 @@ def __main__():
     bins = (0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1, 42)
     hist = {0: 0, .1: 0, .2: 0, .3: 0, .4: 0, .5: 0, .6: 0, .7: 0, .8: 0, .9: 0, 1: 0}
     for row in tqdm(scores, desc="binning"):
-        counts, _ = np.histogram((row*10).astype(int)/10, bins)
+        counts, _ = np.histogram(row.round(3), bins)
         for i, c in enumerate(counts):
             hist[bins[i]] += c
     print(hist)

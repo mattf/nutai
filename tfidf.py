@@ -37,7 +37,7 @@ def __main__():
         index = gensim.similarities.MatrixSimilarity(tfidf[vecs])
 
     with Timer("score time"):
-        scores = [index[tfidf[dictionary.doc2bow(text)]] for text in texts]
+        scores = [sim for sim in index]
 
     with Timer("bin time"):
         # np.histogram uses last bin as max, to include 1.0 need a bin >1.0

@@ -1,4 +1,5 @@
 import json
+import os
 import time
 
 import gensim
@@ -27,17 +28,26 @@ def __main__():
             texts.append(gensim.utils.simple_preprocess(doc['text']))
     print(len(ids), ":", " ".join(map(str,ids[1:5])), "...", " ".join(map(str,ids[-4:])))
 
-    dictionary = gensim.corpora.Dictionary(tqdm(texts, desc="building dictionary"))
-    dictionary.filter_extremes()
-    dictionary.compactify()
+    score_file = "scores.json"
+    if not os.path.exists(score_file):
+        dictionary = gensim.corpora.Dictionary(tqdm(texts, desc="building dictionary"))
+        dictionary.filter_extremes()
+        dictionary.compactify()
 
-    with Timer("model build time"):
-        tfidf = gensim.models.TfidfModel(dictionary=dictionary)
+        with Timer("model build time"):
+            tfidf = gensim.models.TfidfModel(dictionary=dictionary)
 
-    vecs = [dictionary.doc2bow(text) for text in tqdm(texts, desc="building index")]
-    index = gensim.similarities.MatrixSimilarity(tfidf[vecs])
+        vecs = [dictionary.doc2bow(text) for text in tqdm(texts, desc="building index")]
+        index = gensim.similarities.MatrixSimilarity(tfidf[vecs])
 
-    scores = [sim for sim in tqdm(index, desc="scoring")]
+        scores = [sim for sim in tqdm(index, desc="scoring")]
+        with Timer("saving time"):
+            with open(score_file, "w") as fp:
+                json.dump([row.tolist() for row in tqdm(scores, desc="saving scores")], fp)
+    else:
+        with Timer("loading scores time"):
+            with open(score_file) as fp:
+                scores = [np.array(row) for row in tqdm(json.load(fp), desc="loading scores")]
 
     # np.histogram uses last bin as max, to include 1.0 need a bin >1.0
     bins = (0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1, 42)

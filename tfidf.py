@@ -61,7 +61,8 @@ def __main__():
     with open("discovered_dups", "w") as fp:
         threshold = .7
         for i, row in enumerate(tqdm(scores, desc="discovery")):
-            hits = np.logical_and(row > threshold, row < 1)
+            hits = np.logical_and(np.logical_and(row > threshold, row < 1),
+                np.array([False]*(i+1) + [True]*(len(row)-i-1)))
             for id_, score in zip(ids[hits], row[hits]):
                 print(ids[i], id_, score, file=fp)
 

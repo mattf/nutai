@@ -19,18 +19,19 @@ class Timer:
             print(self.message, ":", self.interval)
 
 def __main__():
-    # TODO: fingerprint docs.json and link to scores
-    with open("docs.json") as fp:
-        data = json.load(fp)
-        ids = np.zeros((len(data),), dtype=int)
-        texts = []
-        for i, doc in enumerate(tqdm(data, desc="loading docs")):
-            ids[i] = doc['id']
-            texts.append(gensim.utils.simple_preprocess(doc['text']))
-    print(len(ids), ":", " ".join(map(str,ids[1:5])), "...", " ".join(map(str,ids[-4:])))
-
     score_file = "scores.json"
     if not os.path.exists(score_file):
+        # TODO: fingerprint docs.json and link to scores
+        with open("docs.json") as fp:
+            data = json.load(fp)
+            data = data[:10000]
+            ids = np.zeros((len(data),), dtype=int)
+            texts = []
+            for i, doc in enumerate(tqdm(data, desc="loading docs")):
+                ids[i] = doc['id']
+                texts.append(gensim.utils.simple_preprocess(doc['text']))
+        print(len(ids), ":", " ".join(map(str,ids[1:5])), "...", " ".join(map(str,ids[-4:])))
+
         dictionary = gensim.corpora.Dictionary(tqdm(texts, desc="building dictionary"))
         dictionary.filter_extremes()
         dictionary.compactify()
@@ -44,11 +45,17 @@ def __main__():
         scores = [sim for sim in tqdm(index, desc="scoring")]
         with Timer("saving time"):
             with open(score_file, "w") as fp:
-                json.dump([((row*1000).astype(int)/1000).tolist() for row in tqdm(scores, desc="saving scores")], fp)
+                json.dump({
+                    "ids": ids.tolist(),
+                    "scores": [((row*1000).astype(int)/1000).tolist()
+                                for row in tqdm(scores, desc="saving scores")]
+                    }, fp)
     else:
         with Timer("loading scores time"):
             with open(score_file) as fp:
-                scores = [np.array(row) for row in tqdm(json.load(fp), desc="loading scores")]
+                data = json.load(fp)
+                ids = np.array(data['ids'])
+                scores = [np.array(row) for row in tqdm(data['scores'], desc="loading scores")]
 
     # np.histogram uses last bin as max, to include 1.0 need a bin >1.0
     bins = (0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1, 42)

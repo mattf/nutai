@@ -20,26 +20,31 @@ def pct(n):
 def make_pair(id0, id1):
     return id0 < id1 and (id0, id1) or (id1, id0)
 
-with open("testset") as fp:
-    test_set = {}
-    num_positive = 0
-    num_negative = 0
-    for line in fp.readlines():
-        id0, id1, score = map(int, line.strip().split(" "))
-        if id0 != id1:
-            pair = make_pair(id0, id1)
-            test_set[pair] = score
-            if score == 1:
-                num_positive += 1
-            elif score == 0:
-                num_negative += 1
-            else:
-                print("unknown score", score)
-
 with open("ids", 'rb') as fp:
     with Timer("load ids"):
         ids = msgpack.load(fp)
 print("# ids:", len(ids))
+
+with open("testset") as fp:
+    test_set = {}
+    num_positive = 0
+    num_negative = 0
+    skipped = set()
+    for line in fp.readlines():
+        id0, id1, score = map(int, line.strip().split(" "))
+        if not (ids == id0).any() or not (ids == id1).any():
+            skipped.add((id0, id1, score))
+        else:
+            if id0 != id1:
+                pair = make_pair(id0, id1)
+                test_set[pair] = score
+                if score == 1:
+                    num_positive += 1
+                elif score == 0:
+                    num_negative += 1
+                else:
+                    print("unknown score", score)
+    print("skipped", len(skipped), "test pairs because ids were not in corpus")
 
 with open("scores", 'rb') as fp:
     with Timer("load scores"):

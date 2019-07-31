@@ -2,3 +2,5 @@ connexion[swagger-ui]
 numpy
 redis
 gensim
+msgpack
+msgpack_numpy

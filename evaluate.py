@@ -36,10 +36,8 @@ with open("scores", 'rb') as fp:
 def discover(threshold):
     dups = set()
     for i, row in enumerate(tqdm(scores, "discovery {}".format(threshold))):
-        hits = np.logical_and(
-            np.logical_and(
-                row > threshold, row < 100),
-                np.array([False]*(i+1) + [True]*(len(row)-i-1)))
+        mask = np.array([False]*(i+1) + [True]*(len(row)-i-1))
+        hits = np.logical_and(row > threshold, mask)
         for id_ in ids[hits]:
             dups.add((ids[i], id_))
     return dups

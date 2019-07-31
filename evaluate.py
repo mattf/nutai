@@ -9,6 +9,11 @@ from tqdm import tqdm
 
 msgpack_numpy.patch()
 
+ConfusionMatrix = namedtuple('ConfusionMatrix', ['tp','fp','tn','fn'])
+
+Evaluation = namedtuple('Evaluation',
+                        ['num_positive', 'num_negative', 'confusion_matrix'])
+
 def pct(n):
     return "%i%%" % (n * 100,)
 
@@ -16,16 +21,20 @@ def make_pair(id0, id1):
     return id0 < id1 and (id0, id1) or (id1, id0)
 
 with open("testset") as fp:
-    known_dups = set()
-    known_nondups = set()
+    test_set = {}
+    num_positive = 0
+    num_negative = 0
     for line in fp.readlines():
         id0, id1, score = map(int, line.strip().split(" "))
         if id0 != id1:
             pair = make_pair(id0, id1)
+            test_set[pair] = score
             if score == 1:
-                known_dups.add(pair)
+                num_positive += 1
             elif score == 0:
-                known_nondups.add(pair)
+                num_negative += 1
+            else:
+                print("unknown score", score)
 
 with open("ids", 'rb') as fp:
     with Timer("load ids"):
@@ -37,31 +46,26 @@ with open("scores", 'rb') as fp:
         scores = msgpack.load(fp)
 
 def discover(threshold):
-    dups = set()
-    mask = np.array([True]*len(ids))
-    for i, row in enumerate(tqdm(scores, "discovery {}".format(threshold))):
-        mask[i] = False
-        hits = np.logical_and(row > threshold, mask)
-        for id_ in ids[hits]:
-            dups.add(make_pair(ids[i], id_))
-    return dups
-
-Evaluation = namedtuple('Evaluation',
-                        ['num_positive', 'num_negative', 'num_predicted',
-                            'true_negatives', 'false_positives',
-                            'false_negatives', 'true_positives'])
+    tp, fp, tn, fn = 0, 0, 0, 0
+    for (id0, id1), confidence in test_set.items():
+        prediction = scores[ids == id0][0][ids == id1][0]
+        if prediction > threshold: # positive prediction
+            if confidence == 1: # positive actual
+                tp += 1
+            else: # negative actual
+                fp += 1
+        else: # negative prediction
+            if not confidence == 0: # negative actual
+                tn += 1
+            else: # positive actual
+                fn += 1
+    return ConfusionMatrix(tp, fp, tn, fn)
 
 def evaluate(threshold):
-    predicted = discover(threshold)
     return Evaluation(
-        num_positive=len(known_dups),
-        num_negative=len(known_nondups),
-        num_predicted=len(predicted),
-        true_negatives=len(known_nondups.difference(predicted)),
-        false_positives=len(known_nondups.intersection(predicted)),
-        false_negatives=len(known_dups.difference(predicted)),
-        true_positives=len(known_dups.intersection(predicted))
-    )
+        num_positive=num_positive,
+        num_negative=num_negative,
+        confusion_matrix=discover(threshold))
 
 def print_evaluation(eval_):
     print("known dups:", eval_.num_positive)
@@ -88,12 +92,13 @@ for row in tqdm(scores, desc="binning"):
         hist[bins[i]] += c
 print(hist)
 
-thresholds = (20, 30, 40, 50, 60, 70, 80, 90, 100)
-results = {i: evaluate(i) for i in thresholds}
+with Timer("calculate confusion matrix"):
+    thresholds = (20, 30, 40, 50, 60, 70, 80, 90, 100)
+    results = {i: evaluate(i) for i in thresholds}
 
 print(results)
 
 for x in thresholds:
     eval_ = results[x]
     total = eval_.num_positive + eval_.num_negative
-    print(x, eval_.true_positives, eval_.false_positives, total)
+    print(x, eval_.confusion_matrix.tp, eval_.confusion_matrix.fp, total, len(test_set), sum(eval_.confusion_matrix))

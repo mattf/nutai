@@ -44,9 +44,9 @@ def __main__():
     vecs = [dictionary.doc2bow(text) for text in tqdm(texts, desc="building index")]
     index = gensim.similarities.MatrixSimilarity(tfidf[vecs])
 
-    scores = np.ndarray((num_docs, num_docs))
+    scores = np.ndarray((num_docs, num_docs), dtype='uint8')
     for i, sim in enumerate(tqdm(index, desc="scoring")):
-        scores[i] = sim
+        scores[i] = sim*100
     print(scores)
 
     with Timer("saving time"):

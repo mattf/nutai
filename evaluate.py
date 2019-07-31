@@ -12,13 +12,16 @@ msgpack_numpy.patch()
 def pct(n):
     return "%i%%" % (n * 100,)
 
+def make_pair(id0, id1):
+    return id0 < id1 and (id0, id1) or (id1, id0)
+
 with open("testset") as fp:
     known_dups = set()
     known_nondups = set()
     for line in fp.readlines():
-        id0, id1, score = map(float, line.strip().split(" "))
+        id0, id1, score = map(int, line.strip().split(" "))
         if id0 != id1:
-            pair = (min(id0, id1), max(id0, id1))
+            pair = make_pair(id0, id1)
             if score == 1:
                 known_dups.add(pair)
             elif score == 0:
@@ -40,7 +43,7 @@ def discover(threshold):
         mask[i] = False
         hits = np.logical_and(row > threshold, mask)
         for id_ in ids[hits]:
-            dups.add((ids[i], id_))
+            dups.add(make_pair(ids[i], id_))
     return dups
 
 Evaluation = namedtuple('Evaluation',

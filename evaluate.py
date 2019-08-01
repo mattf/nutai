@@ -95,7 +95,7 @@ for row in tqdm(scores, desc="binning"):
 print(hist)
 
 with Timer("calculate confusion matrix"):
-    thresholds = (20, 30, 40, 50, 60, 70, 80, 90, 100)
+    thresholds = (20, 30, 40, 50, 60, 70, 80, 90)
     results = {i: evaluate(i) for i in thresholds}
 
 print(results)

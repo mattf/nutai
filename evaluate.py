@@ -35,13 +35,19 @@ with open("testset") as fp:
         else:
             if id0 != id1:
                 pair = make_pair(id0, id1)
-                test_set[pair] = is_dup
-                if is_dup:
-                    num_positive += 1
-                elif not is_dup:
-                    num_negative += 1
+                if pair in test_set:
+                    if test_set[pair] != is_dup:
+                        print("contradicting test case for", pair, "resolve in test set")
+                        assert False
                 else:
-                    print("unknown confidence", confidence)
+                    test_set[pair] = is_dup
+                    if is_dup:
+                        num_positive += 1
+                    elif not is_dup:
+                        num_negative += 1
+                    else:
+                        print("unknown confidence", confidence)
+    assert len(test_set) == num_positive + num_negative
     print("skipped", len(skipped), "test pairs because ids were not in corpus")
     print(len(test_set), "test cases available")
 
@@ -95,5 +101,4 @@ with Timer("calculate confusion matrix"):
 print(results)
 
 for x in thresholds:
-    total = num_positive + num_negative
-    print(x, results[x].tp, results[x].fp, total, len(test_set), sum(results[x]))
+    print(x, results[x].tp, results[x].fp, sum(results[x]))

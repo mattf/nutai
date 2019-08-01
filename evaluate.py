@@ -11,9 +11,6 @@ msgpack_numpy.patch()
 
 ConfusionMatrix = namedtuple('ConfusionMatrix', ['tp','fp','tn','fn'])
 
-Evaluation = namedtuple('Evaluation',
-                        ['num_positive', 'num_negative', 'confusion_matrix'])
-
 def pct(n):
     return "%i%%" % (n * 100,)
 
@@ -52,7 +49,7 @@ with open("scores", 'rb') as fp:
     with Timer("load scores"):
         scores = msgpack.load(fp)
 
-def discover(threshold):
+def evaluate(threshold):
     tp, fp, tn, fn = 0, 0, 0, 0
     for (id0, id1), is_dup in test_set.items():
         prediction = scores[ids == id0][0][ids == id1][0]
@@ -67,12 +64,6 @@ def discover(threshold):
             else: # positive actual
                 fn += 1
     return ConfusionMatrix(tp, fp, tn, fn)
-
-def evaluate(threshold):
-    return Evaluation(
-        num_positive=num_positive,
-        num_negative=num_negative,
-        confusion_matrix=discover(threshold))
 
 def print_evaluation(eval_):
     print("known dups:", eval_.num_positive)
@@ -106,6 +97,5 @@ with Timer("calculate confusion matrix"):
 print(results)
 
 for x in thresholds:
-    eval_ = results[x]
-    total = eval_.num_positive + eval_.num_negative
-    print(x, eval_.confusion_matrix.tp, eval_.confusion_matrix.fp, total, len(test_set), sum(eval_.confusion_matrix))
+    total = num_positive + num_negative
+    print(x, results[x].tp, results[x].fp, total, len(test_set), sum(results[x]))

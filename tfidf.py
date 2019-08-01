@@ -51,7 +51,7 @@ def __main__():
         tfidf = gensim.models.TfidfModel(dictionary=dictionary)
 
     vecs = [dictionary.doc2bow(text) for text in tqdm(texts, desc="building index")]
-    index = gensim.similarities.MatrixSimilarity(tfidf[vecs])
+    index = gensim.similarities.SparseMatrixSimilarity(tfidf[vecs], num_features=len(dictionary))
 
     scores = np.ndarray((num_docs, num_docs), dtype='uint8')
     for i, sim in enumerate(tqdm(index, desc="scoring")):

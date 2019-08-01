@@ -27,18 +27,24 @@ with open("testset") as fp:
     num_positive = 0
     num_negative = 0
     skipped = set()
+    blocked = set()
     for line in fp.readlines():
         id0, id1, confidence = line.strip().split(" ")
         is_dup = confidence == '1'
         if not (ids == id0).any() or not (ids == id1).any():
             skipped.add((id0, id1, is_dup))
         else:
-            if id0 != id1:
-                pair = make_pair(id0, id1)
+            pair = make_pair(id0, id1)
+            if id0 != id1 and pair not in blocked:
                 if pair in test_set:
                     if test_set[pair] != is_dup:
+                        blocked.add(pair)
+                        was_dup = test_set.pop(pair)
+                        if was_dup:
+                            num_positive -= 1
+                        else:
+                            num_negative -= 1
                         print("contradicting test case for", pair, "resolve in test set")
-                        assert False
                 else:
                     test_set[pair] = is_dup
                     if is_dup:

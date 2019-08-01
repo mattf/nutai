@@ -53,6 +53,7 @@ def __main__():
     vecs = [dictionary.doc2bow(text) for text in tqdm(texts, desc="building index")]
     index = gensim.similarities.SparseMatrixSimilarity(tfidf[vecs], num_features=len(dictionary))
 
+    # TODO: this should be sparse, w/ 37k docs only 2% of scores are non-zero
     scores = np.ndarray((num_docs, num_docs), dtype='uint8')
     for i, sim in enumerate(tqdm(index, desc="scoring")):
         scores[i] = sim*100

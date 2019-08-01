@@ -46,6 +46,7 @@ with open("testset") as fp:
                 else:
                     print("unknown confidence", confidence)
     print("skipped", len(skipped), "test pairs because ids were not in corpus")
+    print(len(test_set), "test cases available")
 
 with open("scores", 'rb') as fp:
     with Timer("load scores"):

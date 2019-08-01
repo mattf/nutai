@@ -36,8 +36,8 @@ def __main__():
             else:
                 ids.append(doc['solution.id'])
                 texts.append(gensim.utils.simple_preprocess(text))
-            num_docs = len(ids)
         ids = np.array(ids)
+        num_docs = len(ids)
     print("missing issues", missing_issue)
     print("missing body", missing_body)
     print("skipped solutions (missing both)", missing_both)

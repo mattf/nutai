@@ -31,19 +31,20 @@ with open("testset") as fp:
     num_negative = 0
     skipped = set()
     for line in fp.readlines():
-        id0, id1, score = map(int, line.strip().split(" "))
+        id0, id1, confidence = line.strip().split(" ")
+        is_dup = confidence == '1'
         if not (ids == id0).any() or not (ids == id1).any():
-            skipped.add((id0, id1, score))
+            skipped.add((id0, id1, is_dup))
         else:
             if id0 != id1:
                 pair = make_pair(id0, id1)
-                test_set[pair] = score
-                if score == 1:
+                test_set[pair] = is_dup
+                if is_dup:
                     num_positive += 1
-                elif score == 0:
+                elif not is_dup:
                     num_negative += 1
                 else:
-                    print("unknown score", score)
+                    print("unknown confidence", confidence)
     print("skipped", len(skipped), "test pairs because ids were not in corpus")
 
 with open("scores", 'rb') as fp:
@@ -52,15 +53,15 @@ with open("scores", 'rb') as fp:
 
 def discover(threshold):
     tp, fp, tn, fn = 0, 0, 0, 0
-    for (id0, id1), confidence in test_set.items():
+    for (id0, id1), is_dup in test_set.items():
         prediction = scores[ids == id0][0][ids == id1][0]
         if prediction > threshold: # positive prediction
-            if confidence == 1: # positive actual
+            if is_dup: # positive actual
                 tp += 1
             else: # negative actual
                 fp += 1
         else: # negative prediction
-            if not confidence == 0: # negative actual
+            if not is_dup: # negative actual
                 tn += 1
             else: # positive actual
                 fn += 1

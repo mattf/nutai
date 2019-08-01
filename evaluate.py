@@ -44,7 +44,6 @@ with open("testset") as fp:
                             num_positive -= 1
                         else:
                             num_negative -= 1
-                        print("contradicting test case for", pair, "resolve in test set")
                 else:
                     test_set[pair] = is_dup
                     if is_dup:
@@ -55,6 +54,7 @@ with open("testset") as fp:
                         print("unknown confidence", confidence)
     assert len(test_set) == num_positive + num_negative
     print("skipped", len(skipped), "test pairs because ids were not in corpus")
+    print("blocked", len(blocked), "test pairs with contradicting labels:", blocked)
     print(len(test_set), "test cases available")
 
 with open("scores", 'rb') as fp:

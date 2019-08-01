@@ -14,14 +14,33 @@ msgpack_numpy.patch()
 
 def __main__():
     # TODO: fingerprint docs.json and link to scores
-    with open("docs.json") as fp:
+    with open("solutions.json") as fp:
         data = json.load(fp)
-        ids = np.zeros((len(data),), dtype=int)
+        ids = []
         texts = []
+        missing_issue = 0
+        missing_body = 0
+        missing_both = 0
         for i, doc in enumerate(tqdm(data, desc="loading docs")):
-            ids[i] = doc['id']
-            texts.append(gensim.utils.simple_preprocess(doc['text']))
+            text = str()
+            if 'issue' not in doc:
+                missing_issue += 1
+            else:
+                text += ' '.join(doc['issue'])
+            if 'body' not in doc:
+                missing_body += 1
+            else:
+                text += ' '.join(doc['body'])
+            if len(text) == 0:
+                missing_both += 1
+            else:
+                ids.append(doc['solution.id'])
+                texts.append(gensim.utils.simple_preprocess(text))
             num_docs = len(ids)
+        ids = np.array(ids)
+    print("missing issues", missing_issue)
+    print("missing body", missing_body)
+    print("skipped solutions (missing both)", missing_both)
     print(len(ids), ":", " ".join(map(str,ids[1:5])), "...", " ".join(map(str,ids[-4:])))
 
     dictionary = gensim.corpora.Dictionary(tqdm(texts, desc="building dictionary"))

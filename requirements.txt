@@ -4,3 +4,4 @@ redis
 gensim
 msgpack
 msgpack_numpy
+tqdm

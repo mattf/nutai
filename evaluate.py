@@ -28,7 +28,7 @@ scores = load_scores()
 def evaluate(threshold):
     tp, fp, tn, fn = 0, 0, 0, 0
     for (id0, id1), is_dup in test_set.items():
-        prediction = scores[ids == id0][0][ids == id1][0]
+        prediction = scores[ids==id0,ids==id1][0]
         if prediction > threshold: # positive prediction
             if is_dup: # positive actual
                 tp += 1

@@ -1,9 +1,11 @@
+from collections import namedtuple
 import json
 
 from gensim.utils import simple_preprocess
 import msgpack
 import msgpack_numpy
 import numpy as np
+from sklearn.metrics import confusion_matrix
 from tqdm import tqdm
 
 from timer import Timer
@@ -103,3 +105,11 @@ def load_tests(ids):
         print(len(test_set), "test cases available")
 
     return test_set, num_positive, num_negative
+
+ConfusionMatrix = namedtuple('ConfusionMatrix', ['tp','fp','tn','fn'])
+
+def evaluate(scores, test_set, ids, threshold):
+    y_true = list(test_set.values())
+    y_pred = [scores[ids==id0][0][ids==id1][0] > threshold for id0, id1 in test_set]
+    tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
+    return ConfusionMatrix(tp, fp, tn, fn)

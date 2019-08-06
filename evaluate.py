@@ -1,18 +1,14 @@
-from collections import namedtuple
 from timer import Timer
 
 import json
 
 import msgpack, msgpack_numpy
 import numpy as np
-from sklearn.metrics import confusion_matrix
 from tqdm import tqdm
 
-from helpers import load_tests, load_scores
+from helpers import load_tests, load_scores, evaluate
 
 msgpack_numpy.patch()
-
-ConfusionMatrix = namedtuple('ConfusionMatrix', ['tp','fp','tn','fn'])
 
 def pct(n):
     return "%i%%" % (n * 100,)
@@ -25,12 +21,6 @@ print("# ids:", len(ids))
 test_set, num_positive, num_negative = load_tests(ids)
 
 scores = load_scores()
-
-def evaluate(threshold):
-    y_true = list(test_set.values())
-    y_pred = [scores[ids==id0][0][ids==id1][0] > threshold for id0, id1 in test_set]
-    tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
-    return ConfusionMatrix(tp, fp, tn, fn)
 
 def print_evaluation(eval_):
     print("known dups:", num_positive)
@@ -57,7 +47,7 @@ print(hist)
 
 with Timer("calculate confusion matrix"):
     thresholds = (20, 30, 40, 50, 60, 70, 80, 90)
-    results = {i: evaluate(i) for i in thresholds}
+    results = {i: evaluate(scores, test_set, ids, i) for i in thresholds}
 
 print(results)
 

@@ -5,3 +5,4 @@ gensim
 msgpack
 msgpack_numpy
 tqdm
+sklearn

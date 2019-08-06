@@ -5,6 +5,7 @@ import json
 
 import msgpack, msgpack_numpy
 import numpy as np
+from sklearn.metrics import confusion_matrix
 from tqdm import tqdm
 
 from helpers import load_tests, load_scores
@@ -26,19 +27,9 @@ test_set, num_positive, num_negative = load_tests(ids)
 scores = load_scores()
 
 def evaluate(threshold):
-    tp, fp, tn, fn = 0, 0, 0, 0
-    for (id0, id1), is_dup in test_set.items():
-        prediction = scores[ids==id0,ids==id1][0]
-        if prediction > threshold: # positive prediction
-            if is_dup: # positive actual
-                tp += 1
-            else: # negative actual
-                fp += 1
-        else: # negative prediction
-            if not is_dup: # negative actual
-                tn += 1
-            else: # positive actual
-                fn += 1
+    y_true = list(test_set.values())
+    y_pred = [scores[ids==id0][0][ids==id1][0] > threshold for id0, id1 in test_set]
+    tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
     return ConfusionMatrix(tp, fp, tn, fn)
 
 def print_evaluation(eval_):

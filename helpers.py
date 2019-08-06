@@ -106,10 +106,9 @@ def load_tests(ids):
 
     return test_set, num_positive, num_negative
 
-ConfusionMatrix = namedtuple('ConfusionMatrix', ['tp','fp','tn','fn'])
+ConfusionMatrix = namedtuple('ConfusionMatrix', ['tn','fp','fn','tp'])
 
 def evaluate(scores, test_set, ids, threshold):
     y_true = list(test_set.values())
     y_pred = [scores[ids==id0][0][ids==id1][0] > threshold for id0, id1 in test_set]
-    tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
-    return ConfusionMatrix(tp, fp, tn, fn)
+    return ConfusionMatrix(*confusion_matrix(y_true, y_pred).ravel())

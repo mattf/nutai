@@ -58,6 +58,11 @@ def save_scores(ids, score_generator):
         with open("scores", 'wb') as fp:
             msgpack.dump(scores, fp)
 
+def load_scores():
+    with open("scores", 'rb') as fp:
+        with Timer("load scores"):
+            return msgpack.load(fp)
+
 def make_pair(id0, id1):
     return id0 < id1 and (id0, id1) or (id1, id0)
 

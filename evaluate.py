@@ -7,7 +7,7 @@ import msgpack, msgpack_numpy
 import numpy as np
 from tqdm import tqdm
 
-from helpers import load_tests
+from helpers import load_tests, load_scores
 
 msgpack_numpy.patch()
 
@@ -23,9 +23,7 @@ print("# ids:", len(ids))
 
 test_set, num_positive, num_negative = load_tests(ids)
 
-with open("scores", 'rb') as fp:
-    with Timer("load scores"):
-        scores = msgpack.load(fp)
+scores = load_scores()
 
 def evaluate(threshold):
     tp, fp, tn, fn = 0, 0, 0, 0

@@ -47,6 +47,15 @@ def load_texts(filename):
 
     return ids, texts
 
+def save_ids(ids):
+    with open("ids", 'wb') as fp:
+        msgpack.dump(ids, fp)
+
+def load_ids():
+    with open("ids", 'rb') as fp:
+        with Timer("load ids"):
+            return msgpack.load(fp)
+
 def save_scores(ids, score_generator):
     # TODO: this should be sparse, w/ 37k docs only 2% of scores are non-zero
     scores = np.ndarray((len(ids), len(ids)), dtype='uint8')
@@ -55,8 +64,7 @@ def save_scores(ids, score_generator):
     print(scores)
 
     with Timer("saving time"):
-        with open("ids", 'wb') as fp:
-            msgpack.dump(ids, fp)
+        save_ids(ids)
         with open("scores", 'wb') as fp:
             msgpack.dump(scores, fp)
 

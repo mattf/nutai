@@ -6,16 +6,14 @@ import msgpack, msgpack_numpy
 import numpy as np
 from tqdm import tqdm
 
-from helpers import load_tests, load_scores, evaluate
+from helpers import load_tests, load_scores, load_ids, evaluate
 
 msgpack_numpy.patch()
 
 def pct(n):
     return "%i%%" % (n * 100,)
 
-with open("ids", 'rb') as fp:
-    with Timer("load ids"):
-        ids = msgpack.load(fp)
+ids = load_ids()
 print("# ids:", len(ids))
 
 test_set, num_positive, num_negative = load_tests(ids)

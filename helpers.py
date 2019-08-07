@@ -116,7 +116,10 @@ def load_tests(ids):
 
 ConfusionMatrix = namedtuple('ConfusionMatrix', ['tn','fp','fn','tp'])
 
-def evaluate(scores, test_set, ids, threshold):
+def get_score_from_matrix(scores, ids, id0, id1):
+    return scores[ids==id0,ids==id1][0]
+
+def evaluate(scores, test_set, ids, threshold, get_score=get_score_from_matrix):
     y_true = list(test_set.values())
-    y_pred = [scores[ids==id0,ids==id1][0] > threshold for id0, id1 in test_set]
+    y_pred = [get_score(scores, ids, id0, id1) > threshold for id0, id1 in test_set]
     return ConfusionMatrix(*confusion_matrix(y_true, y_pred).ravel())

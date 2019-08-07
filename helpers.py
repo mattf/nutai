@@ -119,6 +119,13 @@ ConfusionMatrix = namedtuple('ConfusionMatrix', ['tn','fp','fn','tp'])
 def get_score_from_matrix(scores, ids, id0, id1):
     return scores[ids==id0,ids==id1][0]
 
+def get_score_from_docvecs(docvecs, ids, id0, id1):
+    score = int((1 - docvecs.distance(id0, id1)) * 100)
+    if score < 0:
+        return 0
+    else:
+        return score
+
 def evaluate(scores, test_set, ids, threshold, get_score=get_score_from_matrix):
     y_true = list(test_set.values())
     y_pred = [get_score(scores, ids, id0, id1) > threshold for id0, id1 in test_set]

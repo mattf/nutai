@@ -141,6 +141,10 @@ def load_tests(ids):
     return test_set, num_positive, num_negative
 
 # ==== EVALUATION =======================================================================
+# n_docs: total number of docs in corpus
+# vect_mat: matrix of size (n_docs, vector_size), stack of each document vector
+# slice_size: number of documents to compare in one go, set to maximize run-time
+#              but ensure the slices aren't too big as to crash
 def all_to_all(n_docs, vect_mat, slice_size=1000):
     if 'sims' in globals().keys():
         del sims

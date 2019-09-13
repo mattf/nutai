@@ -6,20 +6,27 @@ import msgpack
 import msgpack_numpy
 import numpy as np
 from sklearn.metrics import confusion_matrix
-from tqdm import tqdm
+from tqdm.auto import tqdm
+from sklearn.metrics.pairwise import cosine_similarity
 
 from timer import Timer
 
 msgpack_numpy.patch()
 
+
+# ==== DATA INPUT =======================================================================
+
 # filename contents: {[solution.id: "xyz", body: "text", issue: "text"]*}
+# extra_output: choose whether to return documents tags and raw strings as well
 # processor(string) -> (np.array of ids, list of [string*])
-def load_texts(filename):
+def load_texts(filename, extra_output=False, preprocessing=simple_preprocess):
     # TODO: fingerprint docs.json and link to scores
     with open(filename) as fp:
         data = json.load(fp)
         ids = []
         texts = []
+        raw_texts = []
+        tags = []
         missing_issue = 0
         missing_body = 0
         missing_both = 0
@@ -37,7 +44,12 @@ def load_texts(filename):
                 missing_both += 1
             else:
                 ids.append(doc['solution.id'])
-                texts.append(simple_preprocess(text))
+                texts.append(preprocessing(text))
+                if extra_output:
+                    raw_texts.append(text)
+                    doc_tags = doc['tag'] if 'tag' in doc else []
+                    doc_tags += doc['product'] if 'product' in doc else []
+                    tags.append(doc_tags)
         ids = np.array(ids)
         num_docs = len(ids)
     print("missing issues", missing_issue)
@@ -45,7 +57,21 @@ def load_texts(filename):
     print("skipped solutions (missing both)", missing_both)
     print(len(ids), ":", " ".join(map(str,ids[1:5])), "...", " ".join(map(str,ids[-4:])))
 
-    return ids, texts
+    if extra_output:
+        return ids, texts, tags, raw_texts
+    else:
+        return ids, texts
+
+# filename contents: csv file with three columns, id_a, id_b, label_ab, corresponding to testset duplicate pairs
+# docs contents: dict keyed by training set doc ids
+# returns lists of lists, each sublist of format [id_a (str), id_b (str), label_ab (int)]
+def load_testset(filename, docs):
+    with open(filename,"r") as f:
+        testset = [line.split() for line in f.read().split("\n")[:-1]]
+    testset = [[pair[0],pair[1],int(pair[2])] for pair in testset if str(pair[0]) in docs and str(pair[1]) in docs]
+    print("Testset Size:",len(testset))
+    return testset
+    
 
 def save_ids(ids):
     with open("ids", 'wb') as fp:
@@ -113,6 +139,17 @@ def load_tests(ids):
         print(len(test_set), "test cases available")
 
     return test_set, num_positive, num_negative
+
+# ==== EVALUATION =======================================================================
+def all_to_all(n_docs, vect_mat, slice_size=1000):
+    if 'sims' in globals().keys():
+        del sims
+    
+    sims = np.zeros((n_docs,n_docs),dtype=np.dtype('u1'))
+    for slice_idx in tqdm(range(0,n_docs,slice_size)):
+        sims[slice_idx:slice_idx+slice_size,:] = cosine_similarity(vect_mat[slice_idx:slice_idx+slice_size],vect_mat)*255
+    return sims
+
 
 ConfusionMatrix = namedtuple('ConfusionMatrix', ['tn','fp','fn','tp'])
 

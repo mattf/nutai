@@ -2,7 +2,7 @@ import os
 
 import redis
 
-import api
+from nutai import api
 
 # TODO: add tests for addDocuments
 

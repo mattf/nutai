@@ -1,4 +1,4 @@
-from timer import Timer
+from nutai.timer import Timer
 
 import json
 
@@ -6,7 +6,7 @@ import msgpack, msgpack_numpy
 import numpy as np
 from tqdm import tqdm
 
-from helpers import load_tests, load_scores, load_ids, evaluate
+from nutai.helpers import load_tests, load_scores, load_ids, evaluate
 
 msgpack_numpy.patch()
 

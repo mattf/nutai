@@ -1,17 +1,17 @@
 import setuptools
 
 setuptools.setup(
-    name="nut",
-    version="0.1.0",
+    name="nutai",
+    version="0.2.0",
     author="Matthew Farrellee",
     author_email="matt@cs.wisc.edu",
     descrption="A playground for document indexing and search",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
-    url="https://github.com/mattf/nut",
+    url="https://github.com/mattf/nutai",
     packages=setuptools.find_packages(),
     package_data={
-        "nut": ["nut.yaml"],
+        "nutai": ["nutai.yaml"],
     },
     install_requires=[
         'connexion[swagger-ui]',

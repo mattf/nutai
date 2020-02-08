@@ -9,7 +9,7 @@ from sklearn.metrics import confusion_matrix
 from tqdm.auto import tqdm
 from sklearn.metrics.pairwise import cosine_similarity
 
-from nut.timer import Timer
+from nutai.timer import Timer
 
 msgpack_numpy.patch()
 

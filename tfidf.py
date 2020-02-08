@@ -1,5 +1,5 @@
-from helpers import load_texts, save_scores
-from timer import Timer
+from nutai.helpers import load_texts, save_scores
+from nutai.timer import Timer
 
 import gensim
 from tqdm import tqdm

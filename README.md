@@ -3,7 +3,7 @@
 ```bash
 pip install -r requirements.txt
 
-python -m nut
+python -m nutai
 ```
 
 ```bash

@@ -2,7 +2,7 @@ import os
 
 import connexion
 
-import nut.api as api
+import nutai.api as api
 
 app = connexion.FlaskApp(__name__)
 
@@ -14,6 +14,6 @@ api.addDocument = nut.addDocument
 api.addDocuments = nut.addDocuments
 api.status = nut.status
 
-app.add_api('nut.yaml')
+app.add_api('nutai.yaml')
 
 app.run(port=os.getenv('PORT'))

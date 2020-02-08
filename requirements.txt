@@ -7,3 +7,4 @@ msgpack_numpy
 tqdm
 sklearn
 minhash
+pytest

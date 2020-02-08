@@ -3,7 +3,7 @@
 ```bash
 pip install -r requirements.txt
 
-python nut.py
+python -m nut
 ```
 
 ```bash

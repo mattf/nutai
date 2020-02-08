@@ -6,3 +6,4 @@ msgpack
 msgpack_numpy
 tqdm
 sklearn
+minhash

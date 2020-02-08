@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name="nutai",
-    version="0.2.0",
+    version="0.2.1",
     author="Matthew Farrellee",
     author_email="matt@cs.wisc.edu",
     descrption="A playground for document indexing and search",
@@ -23,6 +23,7 @@ setuptools.setup(
         'tqdm',
         'redis',
         'minhash',
+        'mfoops',
     ],
     classifiers=[
         "Programming Language :: Python :: 3",

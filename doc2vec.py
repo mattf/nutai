@@ -5,7 +5,7 @@ import numpy as np
 from tqdm import tqdm
 
 from nutai.helpers import load_texts, save_scores
-from nutai.timer import Timer
+from mfoops.timer import Timer
 
 def __main__():
     ids, texts = load_texts("solutions.json")

@@ -2,7 +2,7 @@ import os
 
 import connexion
 
-import api
+import nut.api as api
 
 app = connexion.FlaskApp(__name__)
 

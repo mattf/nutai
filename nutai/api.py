@@ -3,11 +3,21 @@ import random
 import time
 
 import numpy as np
-import minhash
 import redis
 import json
 
 # TODO: remove magic 42
+
+
+class Model:
+    def __init__(self, store):
+        pass
+
+    def calculate_signature(self, text):
+        pass
+
+    def calculate_similarity(self, signature):
+        pass
 
 
 class NullRedis:
@@ -30,7 +40,7 @@ class Store:
         self._end = 0
         len_ = max(self.r.llen(self.key), 42)  # if redis is empty, don't start w/ 0 len
         self.ids = np.ndarray((len_,), dtype='<U42')  # TODO: find appropriate id length
-        self.sigs = np.ndarray((len_, 42), dtype=int)
+        self.sigs = np.ndarray((len_, 42), dtype=int)  # TODO: sig length should be model dependent
         print("loaded", self._catch_up(), "signatures")
 
     def __contains__(self, id):
@@ -48,7 +58,7 @@ class Store:
         while self._end < len_:
             unknown = self.r.lrange(self.key, self._end, len_)
             self.ids.resize((len_,))
-            self.sigs.resize((len_, 42))
+            self.sigs.resize((len_, 42))  # TODO: sig length should be model dependent
             for raw in unknown:
                 pair = json.loads(raw)
                 self.ids[self._end] = pair['id']
@@ -63,7 +73,7 @@ class Store:
             # if redis gave us < 4 items, _end will be too small to grow w/ *1.25
             size = max(42, int(self._end * 1.25))
             self.ids.resize((size,))
-            self.sigs.resize((size, 42))
+            self.sigs.resize((size, 42))  # TODO: sig length should be model dependent
         self.ids[self._end] = id
         self.sigs[self._end] = sig
         self._end += 1
@@ -76,17 +86,12 @@ class Store:
 
 
 class Nut:
-    def __init__(self, key=None):
-        print("initializing...")
+    def __init__(self, model_type, key=None):
         seed = os.getenv('SEED', int(time.time()))
         random.seed(seed)
         print("using seed:", seed)
-        # signatures are only comparable when they have the same
-        #  0. hash functions (# hashes, coeffs, prime modulus)
-        #  1. input processing  (generate_shingles)
-        # TODO: capture version of input processor
         self.store = Store(key=(key or 'sigs:42:' + str(seed)))
-        self.hash_funcs = list(minhash.generate_hash_funcs(42))
+        self.model = model_type(self.store)
 
     def addDocuments(self, body):
         accepted = []
@@ -105,15 +110,14 @@ class Nut:
         if id in self.store:
             return 'Document already exists', 409
 
-        shingles = list(minhash.generate_shingles(body.split(" ")))
-        self.store.add(id, minhash.calculate_signature(shingles, self.hash_funcs))
+        self.store.add(id, self.model.calculate_signature(body))
 
     def similarById(self, id):
         if id not in self.store:
             return 'Not Found', 404
 
         sig = self.store.sigs[self.store.ids == id][0]
-        scores = minhash.approx_jaccard_score(sig, self.store.sigs, 1)
+        scores = self.model.calculate_similarity(sig)
         hits = scores > .42  # TODO: find appropriate threshold
 
         return [{"id": id, "score": score}
@@ -121,9 +125,8 @@ class Nut:
                                      (scores[hits]*100).astype(int).tolist())]
 
     def similarByContent(self, content):
-        shingles = list(minhash.generate_shingles(content.split(" ")))
-        sig = minhash.calculate_signature(shingles, self.hash_funcs)
-        scores = minhash.approx_jaccard_score(sig, self.store.sigs, 1)
+        sig = self.model.calculate_signature(content)
+        scores = self.model.calculate_similarity(sig)
         hits = scores > .42  # TODO: find appropriate threshold
 
         return [{"id": id, "score": score}

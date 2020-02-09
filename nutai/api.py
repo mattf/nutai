@@ -17,6 +17,7 @@ class NullRedis:
     def info(self): return "fake, no redis"
     def echo(self, msg): return msg
 
+
 class Store:
     def __init__(self, key):
         self.key = key
@@ -24,11 +25,11 @@ class Store:
         try:
             self.r = redis.Redis()
             self.r.echo("morning")
-        except:
+        except redis.exceptions.ConnectionError:
             self.r = NullRedis()
         self._end = 0
-        len_ = max(self.r.llen(self.key), 42) # if redis is empty, don't start w/ 0 len
-        self.ids = np.ndarray((len_,), dtype='<U42') # TODO: find appropriate id length
+        len_ = max(self.r.llen(self.key), 42)  # if redis is empty, don't start w/ 0 len
+        self.ids = np.ndarray((len_,), dtype='<U42')  # TODO: find appropriate id length
         self.sigs = np.ndarray((len_, 42), dtype=int)
         print("loaded", self._catch_up(), "signatures")
 
@@ -53,7 +54,7 @@ class Store:
                 self.ids[self._end] = pair['id']
                 self.sigs[self._end] = np.array(pair['sig'])
                 self._end += 1
-            len_ = self.r.llen(self.key) # TODO: find a way to avoid infinite loop
+            len_ = self.r.llen(self.key)  # TODO: find a way to avoid infinite loop
         return self._end - count
 
     def add(self, id, sig):
@@ -66,7 +67,7 @@ class Store:
         self.ids[self._end] = id
         self.sigs[self._end] = sig
         self._end += 1
-        i = self.r.rpush(self.key, json.dumps({"id":id,"sig":sig.tolist()}))
+        i = self.r.rpush(self.key, json.dumps({"id": id, "sig": sig.tolist()}))
         # TODO: _end should never be > i
         # TODO: handle _end < i, aka there was an addition between start of
         #       this method and the rpush need to catch up, and it's ok if
@@ -113,7 +114,7 @@ class Nut:
 
         sig = self.store.sigs[self.store.ids == id][0]
         scores = minhash.approx_jaccard_score(sig, self.store.sigs, 1)
-        hits = scores > .42 # TODO: find appropriate threshold
+        hits = scores > .42  # TODO: find appropriate threshold
 
         return [{"id": id, "score": score}
                 for id, score in zip(self.store.ids[hits],
@@ -123,7 +124,7 @@ class Nut:
         shingles = list(minhash.generate_shingles(content.split(" ")))
         sig = minhash.calculate_signature(shingles, self.hash_funcs)
         scores = minhash.approx_jaccard_score(sig, self.store.sigs, 1)
-        hits = scores > .42 # TODO: find appropriate threshold
+        hits = scores > .42  # TODO: find appropriate threshold
 
         return [{"id": id, "score": score}
                 for id, score in zip(self.store.ids[hits],

@@ -51,36 +51,38 @@ def load_texts(filename, extra_output=False, preprocessing=simple_preprocess):
                     doc_tags += doc['product'] if 'product' in doc else []
                     tags.append(doc_tags)
         ids = np.array(ids)
-        num_docs = len(ids)
     print("missing issues", missing_issue)
     print("missing body", missing_body)
     print("skipped solutions (missing both)", missing_both)
-    print(len(ids), ":", " ".join(map(str,ids[1:5])), "...", " ".join(map(str,ids[-4:])))
+    print(len(ids), ":", " ".join(map(str, ids[1:5])), "...", " ".join(map(str, ids[-4:])))
 
     if extra_output:
         return ids, texts, tags, raw_texts
     else:
         return ids, texts
 
+
 # filename contents: csv file with three columns, id_a, id_b, label_ab, corresponding to testset duplicate pairs
 # docs contents: dict keyed by training set doc ids
 # returns lists of lists, each sublist of format [id_a (str), id_b (str), label_ab (int)]
 def load_testset(filename, docs):
-    with open(filename,"r") as f:
+    with open(filename, "r") as f:
         testset = [line.split() for line in f.read().split("\n")[:-1]]
-    testset = [[pair[0],pair[1],int(pair[2])] for pair in testset if str(pair[0]) in docs and str(pair[1]) in docs]
-    print("Testset Size:",len(testset))
+    testset = [[pair[0], pair[1], int(pair[2])] for pair in testset if str(pair[0]) in docs and str(pair[1]) in docs]
+    print("Testset Size:", len(testset))
     return testset
-    
+
 
 def save_ids(ids):
     with open("ids", 'wb') as fp:
         msgpack.dump(ids, fp)
 
+
 def load_ids():
     with open("ids", 'rb') as fp:
         with Timer("load ids"):
             return msgpack.load(fp)
+
 
 def save_scores(ids, score_generator):
     # TODO: this should be sparse, w/ 37k docs only 2% of scores are non-zero
@@ -94,13 +96,16 @@ def save_scores(ids, score_generator):
         with open("scores", 'wb') as fp:
             msgpack.dump(scores, fp)
 
+
 def load_scores():
     with open("scores", 'rb') as fp:
         with Timer("load scores"):
             return msgpack.load(fp)
 
+
 def make_pair(id0, id1):
     return id0 < id1 and (id0, id1) or (id1, id0)
+
 
 def load_tests(ids):
     with open("testset") as fp:
@@ -140,6 +145,7 @@ def load_tests(ids):
 
     return test_set, num_positive, num_negative
 
+
 # ==== EVALUATION =======================================================================
 # n_docs: total number of docs in corpus
 # vect_mat: matrix of size (n_docs, vector_size), stack of each document vector
@@ -148,17 +154,20 @@ def load_tests(ids):
 def all_to_all(n_docs, vect_mat, slice_size=1000):
     if 'sims' in globals().keys():
         del sims
-    
-    sims = np.zeros((n_docs,n_docs),dtype=np.dtype('u1'))
-    for slice_idx in tqdm(range(0,n_docs,slice_size)):
-        sims[slice_idx:slice_idx+slice_size,:] = cosine_similarity(vect_mat[slice_idx:slice_idx+slice_size],vect_mat)*255
+
+    sims = np.zeros((n_docs, n_docs), dtype=np.dtype('u1'))
+    for slice_idx in tqdm(range(0, n_docs, slice_size)):
+        sims[slice_idx:slice_idx+slice_size, :] = \
+            cosine_similarity(vect_mat[slice_idx:slice_idx+slice_size], vect_mat)*255
     return sims
 
 
-ConfusionMatrix = namedtuple('ConfusionMatrix', ['tn','fp','fn','tp'])
+ConfusionMatrix = namedtuple('ConfusionMatrix', ['tn', 'fp', 'fn', 'tp'])
+
 
 def get_score_from_matrix(scores, ids, id0, id1):
-    return scores[ids==id0,ids==id1][0]
+    return scores[ids == id0, ids == id1][0]
+
 
 def get_score_from_docvecs(docvecs, ids, id0, id1):
     score = int((1 - docvecs.distance(id0, id1)) * 100)
@@ -166,6 +175,7 @@ def get_score_from_docvecs(docvecs, ids, id0, id1):
         return 0
     else:
         return score
+
 
 def evaluate(scores, test_set, ids, threshold, get_score=get_score_from_matrix):
     y_true = list(test_set.values())

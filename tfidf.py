@@ -4,6 +4,7 @@ from mfoops.timer import Timer
 import gensim
 from tqdm import tqdm
 
+
 def __main__():
     ids, texts = load_texts("solutions.json")
 
@@ -18,6 +19,7 @@ def __main__():
     index = gensim.similarities.SparseMatrixSimilarity(tfidf[vecs], num_features=len(dictionary))
 
     save_scores(ids, index)
+
 
 if __name__ == "__main__":
     __main__()

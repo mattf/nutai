@@ -1,8 +1,6 @@
 from mfoops.timer import Timer
 
-import json
-
-import msgpack, msgpack_numpy
+import msgpack_numpy
 import numpy as np
 from tqdm import tqdm
 
@@ -10,8 +8,10 @@ from nutai.helpers import load_tests, load_scores, load_ids, evaluate
 
 msgpack_numpy.patch()
 
+
 def pct(n):
     return "%i%%" % (n * 100,)
+
 
 ids = load_ids()
 print("# ids:", len(ids))
@@ -19,6 +19,7 @@ print("# ids:", len(ids))
 test_set, num_positive, num_negative = load_tests(ids)
 
 scores = load_scores()
+
 
 def print_evaluation(eval_):
     print("known dups:", num_positive)
@@ -33,6 +34,7 @@ def print_evaluation(eval_):
     print("false positive rate:", pct(eval_.fp / num_negative))
     print("true negative rate | specificity:", pct(eval_.tn / num_negative))
     print("prevalence:", pct(num_positive / (num_positive + num_negative)))
+
 
 # np.histogram uses last bin as max, to include 1.0 need a bin >1.0
 bins = (0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 420)

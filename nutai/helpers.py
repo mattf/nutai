@@ -5,7 +5,6 @@ from gensim.utils import simple_preprocess
 import msgpack
 import msgpack_numpy
 import numpy as np
-import re
 from sklearn.metrics import confusion_matrix
 from tqdm.auto import tqdm
 from sklearn.metrics.pairwise import cosine_similarity
@@ -14,28 +13,20 @@ msgpack_numpy.patch()
 
 
 # ==== DATA INPUT =======================================================================
-def tag_filter(x):
-    if 'Red Hat Enterprise Linux'in x:
-        x = re.sub(r'[\d]+[.]*[\d]+', '', x)
-    if x=='Red Hat JBoss Enterprise Application Platform':
-        return True
-    x = x.strip()
-    if x.count(" ")<5:
-        return True
-    return False
-
-
 # filename contents: {[solution.id: "xyz", body: "text", issue: "text"]*}
 # extra_output: choose whether to return documents tags and raw strings as well
+# text_filter(string) -> bool, to filter out elements in list of input documents
 # processor(string) -> (np.array of ids, list of [string*])
-def load_texts(filename, verbose, extra_output=False, preprocessing=simple_preprocess):
+def load_texts(filename, verbose=True, extra_output=False, text_filter=None, preprocessing=simple_preprocess):
     # TODO: fingerprint docs.json and link to scores
+
+    if text_filter is None:
+        text_filter = lambda x: False
+
     with open(filename) as fp:
         data = json.load(fp)
         ids = []
         texts = []
-        questions = []
-        answers = []
         raw_texts = []
         tags = []
         missing_issue = 0
@@ -43,78 +34,84 @@ def load_texts(filename, verbose, extra_output=False, preprocessing=simple_prepr
         missing_both = 0
         iterator = tqdm(data, desc="loading docs") if verbose else data
         for i, doc in enumerate(iterator):
-            raw_text,text = "",[]
-            question,answer=[],[]
+            raw_text, text = "", []
+            question, answer = [], []
             if 'issue' not in doc:
                 missing_issue += 1
             else:
-                raw_text+= ' '.join(doc['issue'])
-                filt_question = ' '.join([x for x in doc['issue'] if not tag_filter(x)])
+                raw_text += ' '.join(doc['issue'])
+                filt_question = ' '.join([x for x in doc['issue'] if not text_filter(x)])
                 question = preprocessing(filt_question)
-                text+=question
-           
+                text += question
+
             if 'body' not in doc:
                 missing_body += 1
             else:
-                raw_text += "\n===\n"+" ".join(doc['body'])
-                filt_answer = ' '.join([x for x in doc['body'] if not tag_filter(x)])
+                raw_text += "\n===\n" + " ".join(doc['body'])
+                filt_answer = ' '.join([x for x in doc['body'] if not text_filter(x)])
                 answer = preprocessing(filt_answer)
-                text+=answer
-                
+                text += answer
+
             if len(text) == 0:
                 missing_both += 1
             else:
                 ids.append(doc['solution.id'])
-                texts.append({'text':text,
-                              'question':question,
-                              'answer':answer})
+                texts.append({'text': text,
+                              'question': question,
+                              'answer': answer})
                 if extra_output:
-                    raw_texts.append({'raw':raw_text,
-                                      'filt':filt_question+filt_answer,
-                                      'real_raw':doc.get('issue',[])+["==="]+doc.get('body',[]),                              
-                                     })
+                    raw_texts.append({'raw': raw_text,
+                                      'filt': filt_question + filt_answer,
+                                      'real_raw': doc.get('issue', []) + ["==="] + doc.get('body', []),
+                                      })
                     doc_tags = doc['tag'] if 'tag' in doc else []
                     doc_tags += doc['product'] if 'product' in doc else []
                     tags.append(doc_tags)
         ids = np.array(ids)
-        num_docs = len(ids)
+
     if verbose:
         print("missing issues", missing_issue)
         print("missing body", missing_body)
         print("skipped solutions (missing both)", missing_both)
-        print(len(ids), ":", " ".join(map(str,ids[1:5])), "...", " ".join(map(str,ids[-4:])))
+        print(len(ids), ":", " ".join(map(str, ids[1:5])), "...", " ".join(map(str, ids[-4:])))
 
     if extra_output:
         return ids, texts, tags, raw_texts
     else:
         return ids, texts
 
+
 # filename contents: csv file with three columns, id_a, id_b, label_ab, corresponding to testset duplicate pairs
 # docs contents: dict keyed by training set doc ids
 # returns lists of lists, each sublist of format [id_a (str), id_b (str), label_ab (int)]
-def load_testset(filename, docs, verbose):
-    with open(filename,"r") as f:
+def load_testset(filename, docs, verbose=True):
+    with open(filename, "r") as f:
         testset = [line.split() for line in f.read().split("\n")[:-1]]
-    testset = [[pair[0],pair[1],int(pair[2])] for pair in testset if str(pair[0]) in docs and str(pair[1]) in docs]
+    filt_testset = []
+    for pair in testset:
+        if str(pair[0]) in docs and str(pair[1]) in docs:
+            filt_testset.append([pair[0], pair[1], int(pair[2])])
     if verbose:
-        print("Testset Size:",len(testset))
-    return testset
-    
+        print("Testset Size:", len(filt_testset))
+    return filt_testset
+
 
 def save_ids(ids):
     with open("ids", 'wb') as fp:
         msgpack.dump(ids, fp)
+
 
 def load_ids():
     with open("ids", 'rb') as fp:
         with Timer("load ids"):
             return msgpack.load(fp)
 
+
 def save_scores(ids, score_generator):
     # TODO: this should be sparse, w/ 37k docs only 2% of scores are non-zero
     scores = np.ndarray((len(ids), len(ids)), dtype='uint8')
     for i, sim in enumerate(tqdm(score_generator, desc="scoring")):
-        scores[i] = sim*100
+        scores[i] = sim * 100
     print(scores)
 
     with Timer("saving time"):
@@ -122,13 +119,16 @@ def save_scores(ids, score_generator):
         with open("scores", 'wb') as fp:
             msgpack.dump(scores, fp)
 
+
 def load_scores():
     with open("scores", 'rb') as fp:
         with Timer("load scores"):
             return msgpack.load(fp)
 
+
 def make_pair(id0, id1):
     return id0 < id1 and (id0, id1) or (id1, id0)
+
 
 def load_tests(ids):
     with open("testset") as fp:
@@ -168,6 +168,7 @@ def load_tests(ids):
 
     return test_set, num_positive, num_negative
 
+
 # ==== EVALUATION =======================================================================
 # n_docs: total number of docs in corpus
 # vect_mat: matrix of size (n_docs, vector_size), stack of each document vector
@@ -176,17 +177,20 @@ def load_tests(ids):
 def all_to_all(n_docs, vect_mat, slice_size=1000):
     if 'sims' in globals().keys():
         del sims
-    
-    sims = np.zeros((n_docs,n_docs),dtype=np.dtype('u1'))
-    for slice_idx in tqdm(range(0,n_docs,slice_size)):
-        sims[slice_idx:slice_idx+slice_size,:] = cosine_similarity(vect_mat[slice_idx:slice_idx+slice_size],vect_mat)*255
+
+    sims = np.zeros((n_docs, n_docs), dtype=np.dtype('u1'))
+    for slice_idx in tqdm(range(0, n_docs, slice_size)):
+        sims[slice_idx:slice_idx + slice_size, :] = cosine_similarity(vect_mat[slice_idx:slice_idx + slice_size],
+                                                                      vect_mat) * 255
     return sims
 
 
-ConfusionMatrix = namedtuple('ConfusionMatrix', ['tn','fp','fn','tp'])
+ConfusionMatrix = namedtuple('ConfusionMatrix', ['tn', 'fp', 'fn', 'tp'])
+
 
 def get_score_from_matrix(scores, ids, id0, id1):
-    return scores[ids==id0,ids==id1][0]
+    return scores[ids == id0, ids == id1][0]
+
 
 def get_score_from_docvecs(docvecs, ids, id0, id1):
     score = int((1 - docvecs.distance(id0, id1)) * 100)
@@ -194,6 +198,7 @@ def get_score_from_docvecs(docvecs, ids, id0, id1):
         return 0
     else:
         return score
+
 
 def evaluate(scores, test_set, ids, threshold, get_score=get_score_from_matrix):
     y_true = list(test_set.values())

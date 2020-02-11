@@ -1,4 +1,4 @@
-from nutai.helpers import load_texts, save_scores
+from nutai.helpers import load_docs, save_scores
 from mfoops.timer import Timer
 
 import gensim
@@ -6,7 +6,9 @@ from tqdm import tqdm
 
 
 def __main__():
-    ids, texts = load_texts("solutions.json")
+    docs = load_docs("solutions.json")
+    ids = list(docs.keys())
+    texts = [doc['text'] for doc in docs.values()]
 
     dictionary = gensim.corpora.Dictionary(tqdm(texts, desc="building dictionary"))
     dictionary.filter_extremes()

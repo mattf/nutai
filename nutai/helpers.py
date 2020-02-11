@@ -14,6 +14,20 @@ msgpack_numpy.patch()
 
 
 # ==== DATA INPUT =======================================================================
+
+def load_docs(filename, process_text=simple_preprocess):
+    with open(filename) as fp:
+        data = json.load(fp)
+        docs = {
+            doc['solution.id']: doc
+            for doc in tqdm(data, desc='loading docs')
+            if 'issue' in doc or 'body' in doc
+        }
+        for doc in tqdm(docs.values(), desc='adding text'):
+            doc['text'] = process_text(''.join(doc.get('issue', '')) + ' ' + ''.join(doc.get('body', '')))
+    return docs
+
+
 # filename contents: {[solution.id: "xyz", body: "text", issue: "text"]*}
 # extra_output: choose whether to return documents tags and raw strings as well
 # text_filter(string) -> bool, to filter out elements in list of input documents

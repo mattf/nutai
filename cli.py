@@ -1,7 +1,9 @@
 import click
 from gensim.corpora import Dictionary
+from gensim.models.doc2vec import Doc2Vec, TaggedDocument
+import multiprocessing
 import msgpack
-from nutai.helpers import load_texts, load_testset
+from nutai.helpers import load_texts, load_docs, load_testset
 from sklearn.model_selection import train_test_split
 
 
@@ -42,6 +44,27 @@ def split(documents, labeled, train_set, test_set, seed):
         msgpack.dump(list(test_ids), fp)
 
 
+@click.command()
+@click.argument('documents', type=click.Path(exists=True, dir_okay=False))
+@click.argument('model', type=click.Path(exists=False))
+def train_d2v(documents, model):
+    docs = load_docs(documents)
+
+    tagged_docs = [
+        TaggedDocument(doc['text'],
+                       tags=[id_] + doc.get('tag', [])) for id_, doc in docs.items()
+    ]
+
+    d2v = Doc2Vec(tagged_docs,
+                  dm=0,
+                  window=1,
+                  vector_size=256,
+                  epochs=10,
+                  workers=multiprocessing.cpu_count() - 1)
+
+    d2v.save(model)
+
+
 @click.group()
 def cli():
     pass
@@ -49,6 +72,7 @@ def cli():
 
 cli.add_command(generate_stopwords)
 cli.add_command(split)
+cli.add_command(train_d2v)
 
 
 if __name__ == '__main__':

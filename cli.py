@@ -1,9 +1,12 @@
 import click
 from gensim.corpora import Dictionary
+from gensim.models.callbacks import CallbackAny2Vec
 from gensim.models.doc2vec import Doc2Vec, TaggedDocument
 import multiprocessing
 import msgpack
 from nutai.helpers import load_texts, load_docs, load_testset
+from scipy.spatial.distance import cosine
+from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
 
 
@@ -46,9 +49,11 @@ def split(documents, labeled, train_set, test_set, seed):
 
 @click.command()
 @click.argument('documents', type=click.Path(exists=True, dir_okay=False))
+@click.argument('labeled', type=click.Path(exists=True, dir_okay=False))
 @click.argument('model', type=click.Path(exists=False))
-def train_d2v(documents, model):
+def train_d2v(documents, labeled, model):
     docs = load_docs(documents)
+    labels = load_testset(labeled, list(docs.keys()))
 
     tagged_docs = [
         TaggedDocument(doc['text'],
@@ -60,9 +65,42 @@ def train_d2v(documents, model):
                   window=1,
                   vector_size=256,
                   epochs=10,
-                  workers=multiprocessing.cpu_count() - 1)
+                  workers=multiprocessing.cpu_count() - 1,
+                  callbacks=[Logger(docs, labels)]
+    )
 
     d2v.save(model)
+
+
+class Logger(CallbackAny2Vec):
+    def __init__(self, docs, labels):
+        self.epoch = -1
+        self.docs = docs
+        self.labels = labels
+
+    def on_epoch_end(self, model):
+        self.epoch += 1
+        true, pred = [], []
+        for id0, id1, label in self.labels:
+            true.append(label)
+            pred.append((1 - cosine(model.infer_vector(self.docs[id0]['text']),
+                                    model.infer_vector(self.docs[id1]['text']))) > .6)
+        self.print_confusion_matrix(confusion_matrix(true, pred))
+
+    def print_confusion_matrix(self, confusion_matrix):
+        def pct(n):
+            return "%i%%" % (n * 100,)
+
+        (tn, fp), (fn, tp) = confusion_matrix
+        num_pos = tp + fn
+        num_neg = tn + fp
+        print("TP:", tp, "FN:", fn, "TN:", tn, "FP:", fp)
+        print("accuracy:", pct((tp + tn) / (num_pos + num_neg)))
+        print("misclassification rate:", pct((fp + fn) / (num_pos + num_neg)))
+        print("true positive rate | sensitivity | recall:", pct(tp / num_pos))
+        print("false positive rate:", pct(fp / num_neg))
+        print("true negative rate | specificity:", pct(tn / num_neg))
+        print("prevalence:", pct(num_pos / (num_pos + num_neg)))
 
 
 @click.group()

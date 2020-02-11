@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name="nutai",
-    version="0.2.1",
+    version="0.3.0",
     author="Matthew Farrellee",
     author_email="matt@cs.wisc.edu",
     descrption="A playground for document indexing and search",

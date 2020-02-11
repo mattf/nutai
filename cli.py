@@ -77,15 +77,27 @@ class Logger(CallbackAny2Vec):
         self.epoch = -1
         self.docs = docs
         self.labels = labels
+        self.true = [label for _, _, label in labels]
 
     def on_epoch_end(self, model):
         self.epoch += 1
-        true, pred = [], []
-        for id0, id1, label in self.labels:
-            true.append(label)
-            pred.append((1 - cosine(model.infer_vector(self.docs[id0]['text']),
-                                    model.infer_vector(self.docs[id1]['text']))) > .6)
-        self.print_confusion_matrix(confusion_matrix(true, pred))
+        best_thresh = best_rate = -1
+        pred = [(1 - cosine(model.infer_vector(self.docs[id0]['text']),
+                            model.infer_vector(self.docs[id1]['text'])))
+                for id0, id1, _ in self.labels]
+        for thresh in range(40, 100):
+            thresh /= 100
+            (tn, fp), (fn, tp) = confusion_matrix(self.true, [p > thresh for p in pred])
+            true_pos_rate = tp / (tp + fn)
+            true_neg_rate = tn / (tn + fp)
+            current_rate = min(true_pos_rate, true_neg_rate)
+            if  current_rate > best_rate:
+                best_thresh = thresh
+                best_rate = current_rate
+        model.threshold = best_thresh
+
+        print("threshold:", best_thresh)
+        self.print_confusion_matrix(confusion_matrix(self.true, [p > best_thresh for p in pred]))
 
     def print_confusion_matrix(self, confusion_matrix):
         def pct(n):

@@ -12,6 +12,10 @@ from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
 
 
+def pct(n):
+    return "%i%%" % (n * 100,)
+
+
 @click.command()
 @click.argument('documents', type=click.Path(exists=True, dir_okay=False))
 @click.argument('out', type=click.Path(exists=False))
@@ -54,7 +58,8 @@ def split(documents, labeled, train_set, test_set, seed):
 @click.argument('train-ids', type=click.Path(exists=True, dir_okay=False))
 @click.argument('labeled', type=click.Path(exists=True, dir_okay=False))
 @click.argument('model')
-def train_d2v(documents, train_ids, labeled, model):
+@click.option('--iterations', default=1, type=click.INT)
+def train_d2v(documents, train_ids, labeled, model, iterations):
     docs = load_docs(documents)
     with open(train_ids, 'rb') as fp:
         ids = msgpack.load(fp)
@@ -74,20 +79,22 @@ def train_d2v(documents, train_ids, labeled, model):
         d2v = Doc2Vec(dm=0,
                       window=1,
                       vector_size=256,
-                      workers=multiprocessing.cpu_count() - 1,
-                      callbacks=[Logger(docs, labels)]
-        )
+                      workers=multiprocessing.cpu_count() - 1)
 
     # gensim does not allow update=True if there was no previous vocab, which seems like poor api design
     d2v.build_vocab(tagged_docs, update=os.path.exists(model))
-    # gensim marks total_examples and epochs as optional in its api docs, but throws runtime errors if they are not present
-    d2v.train(tagged_docs,
-              total_examples=d2v.corpus_count,
-              epochs=1)
 
-    d2v.threshold = calculate_best_threshold(d2v, docs, labels)
+    for i in range(iterations):
+        # gensim marks total_examples and epochs as optional in its api docs, but throws runtime errors if they are not present
+        d2v.train(tagged_docs,
+                  total_examples=d2v.corpus_count,
+                  epochs=1)
 
-    d2v.save(model)
+        d2v.threshold = calculate_best_threshold(d2v, docs, labels)
+
+        print_d2v_evaluation(docs, labels, d2v)
+
+        d2v.save(model)
 
 
 def calculate_best_threshold(model, docs, labels):
@@ -105,50 +112,38 @@ def calculate_best_threshold(model, docs, labels):
         if  current_rate > best_rate:
             best_thresh = thresh
             best_rate = current_rate
-    model.threshold = best_thresh
+    return best_thresh
 
 
-class Logger(CallbackAny2Vec):
-    def __init__(self, docs, labels):
-        self.epoch = -1
-        self.docs = docs
-        self.labels = labels
-        self.true = [label for _, _, label in labels]
+def print_d2v_evaluation(docs, labels, d2v):
+    true = [label for _, _, label in labels]
+    pred = [(1 - cosine(d2v.infer_vector(docs[id0]['text']),
+                        d2v.infer_vector(docs[id1]['text'])))
+            for id0, id1, _ in labels]
+    (tn, fp), (fn, tp) = confusion_matrix(true, [p > d2v.threshold for p in pred])
+    num_pos = tp + fn
+    num_neg = tn + fp
 
-    def on_epoch_end(self, model):
-        self.epoch += 1
-        best_thresh = best_rate = -1
-        pred = [(1 - cosine(model.infer_vector(self.docs[id0]['text']),
-                            model.infer_vector(self.docs[id1]['text'])))
-                for id0, id1, _ in self.labels]
-        for thresh in range(40, 100):
-            thresh /= 100
-            (tn, fp), (fn, tp) = confusion_matrix(self.true, [p > thresh for p in pred])
-            true_pos_rate = tp / (tp + fn)
-            true_neg_rate = tn / (tn + fp)
-            current_rate = min(true_pos_rate, true_neg_rate)
-            if  current_rate > best_rate:
-                best_thresh = thresh
-                best_rate = current_rate
-        model.threshold = best_thresh
+    print("threshold:", d2v.threshold)
+    print("TP:", tp, "FN:", fn, "TN:", tn, "FP:", fp)
+    print("accuracy:", pct((tp + tn) / (num_pos + num_neg)))
+    print("misclassification rate:", pct((fp + fn) / (num_pos + num_neg)))
+    print("true positive rate | sensitivity | recall:", pct(tp / num_pos))
+    print("false positive rate:", pct(fp / num_neg))
+    print("true negative rate | specificity:", pct(tn / num_neg))
+    print("prevalence:", pct(num_pos / (num_pos + num_neg)))
 
-        print("threshold:", best_thresh)
-        self.print_confusion_matrix(confusion_matrix(self.true, [p > best_thresh for p in pred]))
 
-    def print_confusion_matrix(self, confusion_matrix):
-        def pct(n):
-            return "%i%%" % (n * 100,)
+@click.command()
+@click.argument('documents', type=click.Path(exists=True, dir_okay=False))
+@click.argument('labeled', type=click.Path(exists=True, dir_okay=False))
+@click.argument('model', type=click.Path(exists=True, dir_okay=False))
+def test_d2v(documents, labeled, model):
+    docs = load_docs(documents)
+    labels = load_testset(labeled, list(docs.keys()))
+    d2v = Doc2Vec.load(model)
 
-        (tn, fp), (fn, tp) = confusion_matrix
-        num_pos = tp + fn
-        num_neg = tn + fp
-        print("TP:", tp, "FN:", fn, "TN:", tn, "FP:", fp)
-        print("accuracy:", pct((tp + tn) / (num_pos + num_neg)))
-        print("misclassification rate:", pct((fp + fn) / (num_pos + num_neg)))
-        print("true positive rate | sensitivity | recall:", pct(tp / num_pos))
-        print("false positive rate:", pct(fp / num_neg))
-        print("true negative rate | specificity:", pct(tn / num_neg))
-        print("prevalence:", pct(num_pos / (num_pos + num_neg)))
+    print_d2v_evaluation(docs, labels, d2v)
 
 
 @click.group()
@@ -159,6 +154,7 @@ def cli():
 cli.add_command(generate_stopwords)
 cli.add_command(split)
 cli.add_command(train_d2v)
+cli.add_command(test_d2v)
 
 
 if __name__ == '__main__':

@@ -49,15 +49,19 @@ def split(documents, labeled, train_set, test_set, seed):
 
 @click.command()
 @click.argument('documents', type=click.Path(exists=True, dir_okay=False))
+@click.argument('train-ids', type=click.Path(exists=True, dir_okay=False))
 @click.argument('labeled', type=click.Path(exists=True, dir_okay=False))
 @click.argument('model', type=click.Path(exists=False))
-def train_d2v(documents, labeled, model):
+def train_d2v(documents, train_ids, labeled, model):
     docs = load_docs(documents)
+    with open(train_ids, 'rb') as fp:
+        ids = msgpack.load(fp)
+        train_docs = {id_.decode(): docs[id_.decode()] for id_ in ids}
     labels = load_testset(labeled, list(docs.keys()))
 
     tagged_docs = [
         TaggedDocument(doc['text'],
-                       tags=[id_] + doc.get('tag', [])) for id_, doc in docs.items()
+                       tags=[id_] + doc.get('tag', [])) for id_, doc in train_docs.items()
     ]
 
     d2v = Doc2Vec(tagged_docs,

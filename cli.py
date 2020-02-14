@@ -1,3 +1,5 @@
+import os
+
 import click
 from gensim.corpora import Dictionary
 from gensim.models.callbacks import CallbackAny2Vec
@@ -51,7 +53,7 @@ def split(documents, labeled, train_set, test_set, seed):
 @click.argument('documents', type=click.Path(exists=True, dir_okay=False))
 @click.argument('train-ids', type=click.Path(exists=True, dir_okay=False))
 @click.argument('labeled', type=click.Path(exists=True, dir_okay=False))
-@click.argument('model', type=click.Path(exists=False))
+@click.argument('model')
 def train_d2v(documents, train_ids, labeled, model):
     docs = load_docs(documents)
     with open(train_ids, 'rb') as fp:
@@ -64,16 +66,46 @@ def train_d2v(documents, train_ids, labeled, model):
                        tags=[id_] + doc.get('tag', [])) for id_, doc in train_docs.items()
     ]
 
-    d2v = Doc2Vec(tagged_docs,
-                  dm=0,
-                  window=1,
-                  vector_size=256,
-                  epochs=10,
-                  workers=multiprocessing.cpu_count() - 1,
-                  callbacks=[Logger(docs, labels)]
-    )
+    if os.path.exists(model):
+        print("training an existing model:", model)
+        d2v = Doc2Vec.load(model)
+    else:
+        print("training a new model")
+        d2v = Doc2Vec(dm=0,
+                      window=1,
+                      vector_size=256,
+                      workers=multiprocessing.cpu_count() - 1,
+                      callbacks=[Logger(docs, labels)]
+        )
+
+    # gensim does not allow update=True if there was no previous vocab, which seems like poor api design
+    d2v.build_vocab(tagged_docs, update=os.path.exists(model))
+    # gensim marks total_examples and epochs as optional in its api docs, but throws runtime errors if they are not present
+    d2v.train(tagged_docs,
+              total_examples=d2v.corpus_count,
+              epochs=1)
+
+    d2v.threshold = calculate_best_threshold(d2v, docs, labels)
 
     d2v.save(model)
+
+
+def calculate_best_threshold(model, docs, labels):
+    true = [label for _, _, label in labels]
+    best_thresh = best_rate = -1
+    pred = [(1 - cosine(model.infer_vector(docs[id0]['text']),
+                        model.infer_vector(docs[id1]['text'])))
+            for id0, id1, _ in labels]
+    for thresh in range(42, 100):
+        thresh /= 100
+        (tn, fp), (fn, tp) = confusion_matrix(true, [p > thresh for p in pred])
+        true_pos_rate = tp / (tp + fn)
+        true_neg_rate = tn / (tn + fp)
+        current_rate = min(true_pos_rate, true_neg_rate)
+        if  current_rate > best_rate:
+            best_thresh = thresh
+            best_rate = current_rate
+    model.threshold = best_thresh
 
 
 class Logger(CallbackAny2Vec):

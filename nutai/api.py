@@ -10,7 +10,13 @@ import json
 
 
 class Model:
-    def __init__(self, store):
+    def __init__(self):
+        pass
+
+    def set_store(self, store):
+        pass
+
+    def get_signature_length(self):
         pass
 
     def calculate_signature(self, text):
@@ -29,7 +35,8 @@ class NullRedis:
 
 
 class Store:
-    def __init__(self, key):
+    def __init__(self, key, signature_length):
+        self.signature_length = signature_length
         self.key = key
         print("key:", self.key)
         try:
@@ -40,7 +47,7 @@ class Store:
         self._end = 0
         len_ = max(self.r.llen(self.key), 42)  # if redis is empty, don't start w/ 0 len
         self.ids = np.ndarray((len_,), dtype='<U42')  # TODO: find appropriate id length
-        self.sigs = np.ndarray((len_, 42), dtype=int)  # TODO: sig length should be model dependent
+        self.sigs = np.ndarray((len_, self.signature_length), dtype=int)
         print("loaded", self._catch_up(), "signatures")
 
     def __contains__(self, id):
@@ -58,7 +65,7 @@ class Store:
         while self._end < len_:
             unknown = self.r.lrange(self.key, self._end, len_)
             self.ids.resize((len_,))
-            self.sigs.resize((len_, 42))  # TODO: sig length should be model dependent
+            self.sigs.resize((len_, self.signature_length))
             for raw in unknown:
                 pair = json.loads(raw)
                 self.ids[self._end] = pair['id']
@@ -73,7 +80,7 @@ class Store:
             # if redis gave us < 4 items, _end will be too small to grow w/ *1.25
             size = max(42, int(self._end * 1.25))
             self.ids.resize((size,))
-            self.sigs.resize((size, 42))  # TODO: sig length should be model dependent
+            self.sigs.resize((size, self.signature_length))
         self.ids[self._end] = id
         self.sigs[self._end] = sig
         self._end += 1
@@ -86,12 +93,14 @@ class Store:
 
 
 class Nut:
-    def __init__(self, model_type, key=None):
+    def __init__(self, model, key=None):
         seed = os.getenv('SEED', int(time.time()))
         random.seed(seed)
         print("using seed:", seed)
-        self.store = Store(key=(key or 'sigs:42:' + str(seed)))
-        self.model = model_type(self.store)
+        self.model = model
+        self.store = Store(key=(key or 'sigs:42:' + str(seed)),
+                           signature_length=self.model.get_signature_length())
+        self.model.set_store(self.store)
 
     def addDocuments(self, body):
         accepted = []

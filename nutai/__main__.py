@@ -3,12 +3,12 @@ import os
 import connexion
 
 import nutai.api as api
-from nutai.minhash import Model
+from nutai import minhash
 
 app = connexion.FlaskApp(__name__)
 
 # setup operationIds
-nut = api.Nut(Model)
+nut = api.Nut(minhash.Model())
 api.similarById = nut.similarById
 api.similarByContent = nut.similarByContent
 api.addDocument = nut.addDocument

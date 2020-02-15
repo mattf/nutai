@@ -22,6 +22,9 @@ class Model:
     def get_signature_type(self):
         pass
 
+    def get_threshold(self):
+        pass
+
     def calculate_signature(self, text):
         pass
 
@@ -131,7 +134,7 @@ class Nut:
 
         sig = self.store.sigs[self.store.ids == id][0]
         scores = self.model.calculate_similarity(sig)
-        hits = scores > .42  # TODO: find appropriate threshold
+        hits = scores > self.model.get_threshold()
 
         return [{"id": id, "score": score}
                 for id, score in zip(self.store.ids[hits],
@@ -140,7 +143,7 @@ class Nut:
     def similarByContent(self, content):
         sig = self.model.calculate_signature(content)
         scores = self.model.calculate_similarity(sig)
-        hits = scores > .42  # TODO: find appropriate threshold
+        hits = scores > self.model.get_threshold()
 
         return [{"id": id, "score": score}
                 for id, score in zip(self.store.ids[hits],

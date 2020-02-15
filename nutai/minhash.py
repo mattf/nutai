@@ -18,6 +18,9 @@ class Model:
     def get_signature_type(self):
         return int
 
+    def get_threshold(self):
+        return .42
+
     def calculate_signature(self, text):
         return minhash.calculate_signature(list(minhash.generate_shingles(text.split(" "))), self.hash_funcs)
 

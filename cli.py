@@ -120,11 +120,15 @@ def print_d2v_evaluation(docs, labels, d2v):
     pred = [(1 - cosine(d2v.infer_vector(docs[id0]['text']),
                         d2v.infer_vector(docs[id1]['text'])))
             for id0, id1, _ in labels]
-    (tn, fp), (fn, tp) = confusion_matrix(true, [p > d2v.threshold for p in pred])
+    print("threshold:", d2v.threshold)
+    print_confusion_matrix(confusion_matrix(true, [p > d2v.threshold for p in pred]))
+
+
+def print_confusion_matrix(cm):
+    (tn, fp), (fn, tp) = cm
     num_pos = tp + fn
     num_neg = tn + fp
 
-    print("threshold:", d2v.threshold)
     print("TP:", tp, "FN:", fn, "TN:", tn, "FP:", fp)
     print("accuracy:", pct((tp + tn) / (num_pos + num_neg)))
     print("misclassification rate:", pct((fp + fn) / (num_pos + num_neg)))

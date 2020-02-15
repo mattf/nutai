@@ -22,7 +22,9 @@ class Model:
         return .42
 
     def calculate_signature(self, text):
-        return minhash.calculate_signature(list(minhash.generate_shingles(text.split(" "))), self.hash_funcs)
+        if type(text) == str:
+            text = text.split(" ")
+        return minhash.calculate_signature(list(minhash.generate_shingles(text)), self.hash_funcs)
 
     def calculate_similarity(self, signature):
         return minhash.approx_jaccard_score(signature, self.store.sigs, 1)

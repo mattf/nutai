@@ -5,6 +5,7 @@ import connexion
 
 import nutai.api as api
 import nutai.minhash
+import nutai.doc2vec
 
 
 def start(model, port=os.getenv('PORT')):
@@ -28,12 +29,19 @@ def minhash():
     start(nutai.minhash.Model())
 
 
+@click.command()
+@click.argument('model', type=click.Path(exists=True, dir_okay=False))
+def doc2vec(model):
+    start(nutai.doc2vec.Model(model))
+
+
 @click.group()
 def cli():
     pass
 
 
 cli.add_command(minhash)
+cli.add_command(doc2vec)
 
 
 if __name__ == '__main__':

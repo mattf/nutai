@@ -15,6 +15,9 @@ class Model:
     def get_signature_length(self):
         return 42
 
+    def get_signature_type(self):
+        return int
+
     def calculate_signature(self, text):
         return minhash.calculate_signature(list(minhash.generate_shingles(text.split(" "))), self.hash_funcs)
 

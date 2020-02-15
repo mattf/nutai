@@ -19,6 +19,9 @@ class Model:
     def get_signature_length(self):
         pass
 
+    def get_signature_type(self):
+        pass
+
     def calculate_signature(self, text):
         pass
 
@@ -35,7 +38,7 @@ class NullRedis:
 
 
 class Store:
-    def __init__(self, key, signature_length):
+    def __init__(self, key, signature_length, signature_type):
         self.signature_length = signature_length
         self.key = key
         print("key:", self.key)
@@ -47,7 +50,7 @@ class Store:
         self._end = 0
         len_ = max(self.r.llen(self.key), 42)  # if redis is empty, don't start w/ 0 len
         self.ids = np.ndarray((len_,), dtype='<U42')  # TODO: find appropriate id length
-        self.sigs = np.ndarray((len_, self.signature_length), dtype=int)
+        self.sigs = np.ndarray((len_, self.signature_length), dtype=signature_type)
         print("loaded", self._catch_up(), "signatures")
 
     def __contains__(self, id):
@@ -99,7 +102,8 @@ class Nut:
         print("using seed:", seed)
         self.model = model
         self.store = Store(key=(key or 'sigs:42:' + str(seed)),
-                           signature_length=self.model.get_signature_length())
+                           signature_length=self.model.get_signature_length(),
+                           signature_type=self.model.get_signature_type())
         self.model.set_store(self.store)
 
     def addDocuments(self, body):

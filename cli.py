@@ -90,20 +90,20 @@ def train_d2v(documents, train_ids, labeled, model, iterations):
                   total_examples=d2v.corpus_count,
                   epochs=1)
 
-        d2v.threshold = calculate_best_threshold(d2v, docs, labels)
+        pred = [(1 - cosine(d2v.infer_vector(docs[id0]['text']),
+                            d2v.infer_vector(docs[id1]['text'])))
+                for id0, id1, _ in labels]
+        d2v.threshold = calculate_best_threshold(pred, labels)
 
         print_d2v_evaluation(docs, labels, d2v)
 
         d2v.save(model)
 
 
-def calculate_best_threshold(model, docs, labels):
+def calculate_best_threshold(pred, labels):
     true = [label for _, _, label in labels]
     best_thresh = best_rate = -1
-    pred = [(1 - cosine(model.infer_vector(docs[id0]['text']),
-                        model.infer_vector(docs[id1]['text'])))
-            for id0, id1, _ in labels]
-    for thresh in range(42, 100):
+    for thresh in range(0, 100):
         thresh /= 100
         (tn, fp), (fn, tp) = confusion_matrix(true, [p > thresh for p in pred])
         true_pos_rate = tp / (tp + fn)

@@ -19,7 +19,9 @@ class Model:
         return self.model.threshold
 
     def calculate_signature(self, text):
-        return self.model.infer_vector(text.split(' '), epochs=100)
+        if type(text) == str:
+            test.split(" ")
+        return self.model.infer_vector(text, epochs=100)
 
     def calculate_similarity(self, signature):
         return cosine_similarity(signature.reshape(1, -1), self.store.sigs)[0]

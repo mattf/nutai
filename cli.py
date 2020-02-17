@@ -53,6 +53,15 @@ def split(documents, labeled, train_set, test_set, seed):
         msgpack.dump(list(test_ids), fp)
 
 
+def d2v_predict(labels, d2v, docs):
+    true = [label for _, _, label in labels]
+    pred = [(1 - cosine(d2v.infer_vector(docs[id0]['text']),
+                        d2v.infer_vector(docs[id1]['text'])))
+            for id0, id1, _ in labels]
+
+    return true, pred
+
+
 @click.command()
 @click.argument('documents', type=click.Path(exists=True, dir_okay=False))
 @click.argument('train-ids', type=click.Path(exists=True, dir_okay=False))
@@ -65,8 +74,6 @@ def train_d2v(documents, train_ids, labeled, model, iterations):
         ids = msgpack.load(fp)
         train_docs = {id_.decode(): docs[id_.decode()] for id_ in ids}
     labels = load_testset(labeled, list(docs.keys()))
-
-    true = [label for _, _, label in labels]
 
     tagged_docs = [
         TaggedDocument(doc['text'],
@@ -92,9 +99,7 @@ def train_d2v(documents, train_ids, labeled, model, iterations):
                   total_examples=d2v.corpus_count,
                   epochs=1)
 
-        pred = [(1 - cosine(d2v.infer_vector(docs[id0]['text']),
-                            d2v.infer_vector(docs[id1]['text'])))
-                for id0, id1, _ in labels]
+        true, pred = d2v_predict(labels, d2v, docs)
         d2v.threshold = calculate_best_threshold(pred, labels)
 
         print("threshold:", d2v.threshold)
@@ -141,10 +146,7 @@ def test_d2v(documents, labeled, model):
     labels = load_testset(labeled, list(docs.keys()))
     d2v = Doc2Vec.load(model)
 
-    true = [label for _, _, label in labels]
-    pred = [(1 - cosine(d2v.infer_vector(docs[id0]['text']),
-                        d2v.infer_vector(docs[id1]['text'])))
-            for id0, id1, _ in labels]
+    true, pred = d2v_predict(labels, d2v, docs)
     print("threshold:", d2v.threshold)
     print_confusion_matrix(confusion_matrix(true, [p > d2v.threshold for p in pred]))
 

@@ -6,11 +6,13 @@ from gensim.models.callbacks import CallbackAny2Vec
 from gensim.models.doc2vec import Doc2Vec, TaggedDocument
 import multiprocessing
 import msgpack
+from minhash import approx_jaccard_score
 from nutai.helpers import load_texts, load_docs, load_testset
 from scipy.spatial.distance import cosine
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
 
+import nutai.minhash
 
 def pct(n):
     return "%i%%" % (n * 100,)
@@ -151,6 +153,24 @@ def test_d2v(documents, labeled, model):
     print_confusion_matrix(confusion_matrix(true, [p > d2v.threshold for p in pred]))
 
 
+@click.command()
+@click.argument('documents', type=click.Path(exists=True, dir_okay=False))
+@click.argument('labeled', type=click.Path(exists=True, dir_okay=False))
+def test_minhash(documents, labeled):
+    docs = load_docs(documents)
+    labels = load_testset(labeled, list(docs.keys()))
+    model = nutai.minhash.Model()
+
+    true = [label for _, _, label in labels]
+    pred = [approx_jaccard_score(model.calculate_signature(docs[id0]['text']),
+                                 model.calculate_signature(docs[id1]['text']))
+            for id0, id1, _ in labels]
+    best_thresh = calculate_best_threshold(pred, labels)
+
+    print("best threshold:", best_thresh)
+    print_confusion_matrix(confusion_matrix(true, [p > best_thresh for p in pred]))
+
+
 @click.group()
 def cli():
     pass
@@ -160,6 +180,7 @@ cli.add_command(generate_stopwords)
 cli.add_command(split)
 cli.add_command(train_d2v)
 cli.add_command(test_d2v)
+cli.add_command(test_minhash)
 
 
 if __name__ == '__main__':

@@ -20,7 +20,7 @@ class Model:
 
     def calculate_signature(self, text):
         if type(text) == str:
-            test.split(" ")
+            text = text.split(" ")
         return self.model.infer_vector(text, epochs=100)
 
     def calculate_similarity(self, signature):

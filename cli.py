@@ -66,6 +66,8 @@ def train_d2v(documents, train_ids, labeled, model, iterations):
         train_docs = {id_.decode(): docs[id_.decode()] for id_ in ids}
     labels = load_testset(labeled, list(docs.keys()))
 
+    true = [label for _, _, label in labels]
+
     tagged_docs = [
         TaggedDocument(doc['text'],
                        tags=[id_] + doc.get('tag', [])) for id_, doc in train_docs.items()
@@ -95,7 +97,8 @@ def train_d2v(documents, train_ids, labeled, model, iterations):
                 for id0, id1, _ in labels]
         d2v.threshold = calculate_best_threshold(pred, labels)
 
-        print_d2v_evaluation(docs, labels, d2v)
+        print("threshold:", d2v.threshold)
+        print_confusion_matrix(confusion_matrix(true, [p > d2v.threshold for p in pred]))
 
         d2v.save(model)
 
@@ -113,15 +116,6 @@ def calculate_best_threshold(pred, labels):
             best_thresh = thresh
             best_rate = current_rate
     return best_thresh
-
-
-def print_d2v_evaluation(docs, labels, d2v):
-    true = [label for _, _, label in labels]
-    pred = [(1 - cosine(d2v.infer_vector(docs[id0]['text']),
-                        d2v.infer_vector(docs[id1]['text'])))
-            for id0, id1, _ in labels]
-    print("threshold:", d2v.threshold)
-    print_confusion_matrix(confusion_matrix(true, [p > d2v.threshold for p in pred]))
 
 
 def print_confusion_matrix(cm):
@@ -147,7 +141,12 @@ def test_d2v(documents, labeled, model):
     labels = load_testset(labeled, list(docs.keys()))
     d2v = Doc2Vec.load(model)
 
-    print_d2v_evaluation(docs, labels, d2v)
+    true = [label for _, _, label in labels]
+    pred = [(1 - cosine(d2v.infer_vector(docs[id0]['text']),
+                        d2v.infer_vector(docs[id1]['text'])))
+            for id0, id1, _ in labels]
+    print("threshold:", d2v.threshold)
+    print_confusion_matrix(confusion_matrix(true, [p > d2v.threshold for p in pred]))
 
 
 @click.group()

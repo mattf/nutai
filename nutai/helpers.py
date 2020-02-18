@@ -102,14 +102,14 @@ def load_texts(filename, verbose=True, extra_output=False, text_filter=None, pre
 
 # filename contents: csv file with three columns, id_a, id_b, label_ab, corresponding to testset duplicate pairs
 # docs contents: dict keyed by training set doc ids
-# returns lists of lists, each sublist of format [id_a (str), id_b (str), label_ab (int)]
+# returns set of tuples, each in the format: (id_a (str), id_b (str), label_ab (int))
 def load_testset(filename, docs, verbose=True):
     with open(filename, "r") as f:
         testset = [line.split() for line in f.read().split("\n")[:-1]]
-    filt_testset = []
+    filt_testset = set()
     for pair in testset:
         if str(pair[0]) in docs and str(pair[1]) in docs:
-            filt_testset.append([pair[0], pair[1], int(pair[2])])
+            filt_testset.add((pair[0], pair[1], int(pair[2])))
     if verbose:
         print("Testset Size:", len(filt_testset))
     return filt_testset

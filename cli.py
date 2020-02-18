@@ -22,8 +22,8 @@ def pct(n):
 @click.argument('documents', type=click.Path(exists=True, dir_okay=False))
 @click.argument('out', type=click.Path(exists=False))
 def generate_stopwords(documents, out):
-    _, texts = load_texts(documents)
-    dictionary = Dictionary(texts)
+    docs = load_docs(documents)
+    dictionary = Dictionary([doc['text'] for doc in docs.values()])
     before = set(dictionary.values())
     dictionary.filter_extremes()
     after = set(dictionary.values())

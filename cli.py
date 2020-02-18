@@ -2,7 +2,6 @@ import os
 
 import click
 from gensim.corpora import Dictionary
-from gensim.models.callbacks import CallbackAny2Vec
 from gensim.models.doc2vec import Doc2Vec, TaggedDocument
 import multiprocessing
 import msgpack
@@ -13,6 +12,7 @@ from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
 
 import nutai.minhash
+
 
 def pct(n):
     return "%i%%" % (n * 100,)
@@ -99,7 +99,7 @@ def train_d2v(documents, stopwords, train_ids, labeled, model, iterations):
     d2v.build_vocab(tagged_docs, update=os.path.exists(model))
 
     for i in range(iterations):
-        # gensim marks total_examples and epochs as optional in its api docs, but throws runtime errors if they are not present
+        # gensim marks total_examples and epochs as optional in its api docs and throws errors if they are not present
         d2v.train(tagged_docs,
                   total_examples=d2v.corpus_count,
                   epochs=1)
@@ -122,7 +122,7 @@ def calculate_best_threshold(pred, labels):
         true_pos_rate = tp / (tp + fn)
         true_neg_rate = tn / (tn + fp)
         current_rate = min(true_pos_rate, true_neg_rate)
-        if  current_rate > best_rate:
+        if current_rate > best_rate:
             best_thresh = thresh
             best_rate = current_rate
     return best_thresh

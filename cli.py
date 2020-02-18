@@ -7,7 +7,7 @@ from gensim.models.doc2vec import Doc2Vec, TaggedDocument
 import multiprocessing
 import msgpack
 from minhash import approx_jaccard_score
-from nutai.helpers import load_texts, load_docs, load_testset
+from nutai.helpers import load_texts, load_docs, load_testset, simple_preprocess_and_filter_stopwords
 from scipy.spatial.distance import cosine
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
@@ -66,12 +66,15 @@ def d2v_predict(labels, d2v, docs):
 
 @click.command()
 @click.argument('documents', type=click.Path(exists=True, dir_okay=False))
+@click.argument('stopwords', type=click.Path(exists=True, dir_okay=False))
 @click.argument('train-ids', type=click.Path(exists=True, dir_okay=False))
 @click.argument('labeled', type=click.Path(exists=True, dir_okay=False))
 @click.argument('model')
 @click.option('--iterations', default=1, type=click.INT)
-def train_d2v(documents, train_ids, labeled, model, iterations):
-    docs = load_docs(documents)
+def train_d2v(documents, stopwords, train_ids, labeled, model, iterations):
+    with open(stopwords, 'rb') as fp:
+        stops = set(msgpack.load(fp))
+    docs = load_docs(documents, process_text=simple_preprocess_and_filter_stopwords(stops))
     with open(train_ids, 'rb') as fp:
         ids = msgpack.load(fp)
         train_docs = {id_.decode(): docs[id_.decode()] for id_ in ids}

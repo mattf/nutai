@@ -28,6 +28,10 @@ def load_docs(filename, process_text=simple_preprocess):
     return docs
 
 
+def simple_preprocess_and_filter_stopwords(stopwords):
+    return lambda text: [word for word in simple_preprocess(text) if word not in stopwords]
+
+
 # filename contents: {[solution.id: "xyz", body: "text", issue: "text"]*}
 # extra_output: choose whether to return documents tags and raw strings as well
 # text_filter(string) -> bool, to filter out elements in list of input documents

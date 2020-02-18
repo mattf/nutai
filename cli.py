@@ -158,9 +158,12 @@ def test_d2v(documents, labeled, model):
 
 @click.command()
 @click.argument('documents', type=click.Path(exists=True, dir_okay=False))
+@click.argument('stopwords', type=click.Path(exists=True, dir_okay=False))
 @click.argument('labeled', type=click.Path(exists=True, dir_okay=False))
-def test_minhash(documents, labeled):
-    docs = load_docs(documents)
+def test_minhash(documents, stopwords, labeled):
+    with open(stopwords, 'rb') as fp:
+        stops = set(msgpack.load(fp))
+    docs = load_docs(documents, process_text=simple_preprocess_and_filter_stopwords(stops))
     labels = load_testset(labeled, list(docs.keys()))
     model = nutai.minhash.Model()
 

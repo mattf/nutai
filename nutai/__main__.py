@@ -35,6 +35,19 @@ def doc2vec(model):
     start(nutai.doc2vec.Model(model))
 
 
+@click.command()
+def topics(port=os.getenv('PORT')):
+    app = connexion.FlaskApp(__name__)
+
+    # setup operationIds
+    nut = api.TopicNut()
+    api.getTopics = nut.getTopics
+
+    app.add_api('topic_nut.yaml')
+
+    app.run(port)
+
+
 @click.group()
 def cli():
     pass
@@ -42,6 +55,7 @@ def cli():
 
 cli.add_command(minhash)
 cli.add_command(doc2vec)
+cli.add_command(topics)
 
 
 if __name__ == '__main__':

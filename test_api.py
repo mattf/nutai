@@ -136,3 +136,8 @@ def test_parallel_add_second_document():
         assert len(nut1.similarById("0")) == 1
         assert nut0.status()["_end"] == 2
         assert nut1.status()["_end"] == 2
+
+
+def test_get_topics_exists():
+    nut = api.TopicNut()
+    assert type(nut.getTopics("nothing special")) is list

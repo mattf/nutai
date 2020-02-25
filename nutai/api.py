@@ -156,3 +156,11 @@ class DocNut:
                 'ids': self.store.ids.tolist(),
                 'len(sigs)': len(self.store.sigs),
                 'sigs': self.store.sigs.tolist()}
+
+
+class TopicNut:
+    def __init__(self):
+        pass
+
+    def getTopics(self, document):
+        return ['bonus0', 'bogus topic', 'who_knows']

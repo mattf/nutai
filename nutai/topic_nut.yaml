@@ -1,0 +1,42 @@
+---
+openapi: 3.0.2
+info:
+  title: topic_nut
+  version: 1.0.0
+  description: Topic discovery
+  contact:
+    name: Matthew Farrellee
+    url: https://loopback.localhost
+    email: matt@cs.wisc.edu
+  license:
+    name: GNU AGPLv3
+    url: https://www.gnu.org/licenses/agpl.txt
+paths:
+  /topics:
+    get:
+      parameters:
+      - name: document
+        description: Document for which to compute topics
+        schema:
+          type: string
+        in: query
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+              examples:
+                Example topics response:
+                  value:
+                  - topic one
+                  - topic_two
+                  - third
+                Example of no topics:
+                  value: []
+          description: A list of topics for the given document
+      operationId: nutai.api.getTopics
+      summary: Get topics from a document

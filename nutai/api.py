@@ -98,7 +98,7 @@ class Store:
         #       they have the same contents
 
 
-class Nut:
+class DocNut:
     def __init__(self, model, key=None):
         seed = os.getenv('SEED', int(time.time()))
         random.seed(seed)

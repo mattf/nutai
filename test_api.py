@@ -36,14 +36,14 @@ class TestSpace:
 
 def test_get_unknown_document():
     with MockRedis():
-        nut = api.Nut(NullModel())
+        nut = api.DocNut(NullModel())
         _, code = nut.similarById("0")
         assert code == 404
 
 
 def test_add_single_document():
     with MockRedis():
-        nut = api.Nut(NullModel())
+        nut = api.DocNut(NullModel())
         assert nut.addDocument("0", "a b c") is None
         assert len(nut.similarById("0")) == 1
         assert nut.status()["_end"] == 1
@@ -51,7 +51,7 @@ def test_add_single_document():
 
 def test_add_duplicate_document():
     with MockRedis():
-        nut = api.Nut(NullModel())
+        nut = api.DocNut(NullModel())
         assert nut.addDocument("0", "a b c") is None
         assert len(nut.similarById("0")) == 1
         assert nut.status()["_end"] == 1
@@ -62,7 +62,7 @@ def test_add_duplicate_document():
 
 def test_add_too_long_id():
     with MockRedis():
-        nut = api.Nut(NullModel())
+        nut = api.DocNut(NullModel())
         id_ = "0" * 128
         _, code = nut.addDocument(id_, "a b c")
         assert code == 400
@@ -71,7 +71,7 @@ def test_add_too_long_id():
 
 def test_add_max_length_id():
     with MockRedis():
-        nut = api.Nut(NullModel())
+        nut = api.DocNut(NullModel())
         id_ = "0" * 42
         assert nut.addDocument(id_, "a b c") is None
         assert len(nut.similarById(id_)) == 1
@@ -80,7 +80,7 @@ def test_add_max_length_id():
 
 def test_get_too_long_id():
     with MockRedis():
-        nut = api.Nut(NullModel())
+        nut = api.DocNut(NullModel())
         id_ = "0" * 128
         _, code = nut.similarById(id_)
         assert code == 404
@@ -88,7 +88,7 @@ def test_get_too_long_id():
 
 def test_compare0():
     with MockRedis():
-        nut = api.Nut(NullModel())
+        nut = api.DocNut(NullModel())
         assert nut.addDocument("0", "a b c") is None
         assert len(nut.similarByContent("a b c")) == 1
 
@@ -97,7 +97,7 @@ def test_parallel_add_single_document():
     # mock os.getenv("SEED")
     os.getenv = lambda key, default=None: "42"
     with TestSpace() as key:
-        nut0, nut1 = api.Nut(NullModel(), key=key), api.Nut(NullModel(), key=key)
+        nut0, nut1 = api.DocNut(NullModel(), key=key), api.DocNut(NullModel(), key=key)
         assert nut0.store != nut1.store
         assert nut0.store.r != nut1.store.r
         assert nut0.store.key == nut1.store.key
@@ -111,7 +111,7 @@ def test_parallel_add_duplicate_document():
     # mock os.getenv("SEED")
     os.getenv = lambda key, default=None: "42"
     with TestSpace() as key:
-        nut0, nut1 = api.Nut(NullModel(), key=key), api.Nut(NullModel(), key=key)
+        nut0, nut1 = api.DocNut(NullModel(), key=key), api.DocNut(NullModel(), key=key)
         assert nut0.store != nut1.store
         assert nut0.store.r != nut1.store.r
         assert nut0.store.key == nut1.store.key
@@ -126,7 +126,7 @@ def test_parallel_add_second_document():
     # mock os.getenv("SEED")
     os.getenv = lambda key, default=None: "42"
     with TestSpace() as key:
-        nut0, nut1 = api.Nut(NullModel(), key=key), api.Nut(NullModel(), key=key)
+        nut0, nut1 = api.DocNut(NullModel(), key=key), api.DocNut(NullModel(), key=key)
         assert nut0.store != nut1.store
         assert nut0.store.r != nut1.store.r
         assert nut0.store.key == nut1.store.key

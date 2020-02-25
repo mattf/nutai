@@ -12,14 +12,14 @@ def start(model, port=os.getenv('PORT')):
     app = connexion.FlaskApp(__name__)
 
     # setup operationIds
-    nut = api.Nut(model)
+    nut = api.DocNut(model)
     api.similarById = nut.similarById
     api.similarByContent = nut.similarByContent
     api.addDocument = nut.addDocument
     api.addDocuments = nut.addDocuments
     api.status = nut.status
 
-    app.add_api('nutai.yaml')
+    app.add_api('doc_nut.yaml')
 
     app.run(port)
 

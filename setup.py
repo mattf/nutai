@@ -11,7 +11,7 @@ setuptools.setup(
     url="https://github.com/mattf/nutai",
     packages=setuptools.find_packages(),
     package_data={
-        "nutai": ["nutai.yaml"],
+        "nutai": ["doc_nut.yaml"],
     },
     install_requires=[
         'connexion[swagger-ui]',

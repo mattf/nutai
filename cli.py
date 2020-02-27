@@ -6,7 +6,7 @@ from gensim.models.doc2vec import Doc2Vec, TaggedDocument
 import multiprocessing
 import msgpack
 from minhash import approx_jaccard_score
-from nutai.helpers import load_texts, load_docs, load_testset, simple_preprocess_and_filter_stopwords
+from nutai.helpers import load_docs, load_testset, simple_preprocess_and_filter_stopwords
 from scipy.spatial.distance import cosine
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
@@ -40,8 +40,8 @@ def generate_stopwords(documents, out):
 @click.option('--seed', default=None, type=click.INT)
 def split(documents, labeled, train_set, test_set, seed):
     print(documents, labeled, seed, train_set, test_set)
-    all_ids, _ = load_texts(documents)
-    all_ids = set(all_ids)
+    docs = load_docs(documents)
+    all_ids = set(docs)
     labels = load_testset(labeled, all_ids)
     labeled_ids = set()
     for id0, id1, _ in labels:

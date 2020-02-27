@@ -115,11 +115,6 @@ def load_testset(filename, docs, verbose=True):
     return filt_testset
 
 
-def save_ids(ids):
-    with open("ids", 'wb') as fp:
-        msgpack.dump(ids, fp)
-
-
 def load_scores():
     with open("scores", 'rb') as fp:
         with Timer("load scores"):

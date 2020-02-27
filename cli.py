@@ -41,13 +41,12 @@ def generate_stopwords(documents, out):
 def split(documents, labeled, train_set, test_set, seed):
     print(documents, labeled, seed, train_set, test_set)
     docs = load_docs(documents)
-    all_ids = set(docs)
-    labels = load_testset(labeled, all_ids)
+    labels = load_testset(labeled, docs)
     labeled_ids = set()
     for id0, id1, _ in labels:
         labeled_ids.add(id0)
         labeled_ids.add(id1)
-    train_ids, test_ids = train_test_split(list(all_ids - labeled_ids), test_size=.2, train_size=.8)
+    train_ids, test_ids = train_test_split(list(set(docs) - labeled_ids), test_size=.2, train_size=.8)
     test_ids += labeled_ids
     with open(train_set, 'wb') as fp:
         msgpack.dump(list(train_ids), fp)
@@ -78,7 +77,7 @@ def train_d2v(documents, stopwords, train_ids, labeled, model, iterations):
     with open(train_ids, 'rb') as fp:
         ids = msgpack.load(fp)
         train_docs = {id_.decode(): docs[id_.decode()] for id_ in ids}
-    labels = load_testset(labeled, list(docs.keys()))
+    labels = load_testset(labeled, docs)
 
     tagged_docs = [
         TaggedDocument(doc['text'],
@@ -148,7 +147,7 @@ def print_confusion_matrix(cm):
 @click.argument('model', type=click.Path(exists=True, dir_okay=False))
 def test_d2v(documents, labeled, model):
     docs = load_docs(documents)
-    labels = load_testset(labeled, list(docs.keys()))
+    labels = load_testset(labeled, docs)
     d2v = Doc2Vec.load(model)
 
     true, pred = d2v_predict(labels, d2v, docs)
@@ -164,7 +163,7 @@ def test_minhash(documents, stopwords, labeled):
     with open(stopwords, 'rb') as fp:
         stops = set(msgpack.load(fp))
     docs = load_docs(documents, process_text=simple_preprocess_and_filter_stopwords(stops))
-    labels = load_testset(labeled, list(docs.keys()))
+    labels = load_testset(labeled, docs)
     model = nutai.minhash.Model()
 
     true = [label for _, _, label in labels]

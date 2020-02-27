@@ -1,5 +1,6 @@
 import os
 
+import pytest
 import redis
 
 from nutai import api
@@ -26,7 +27,10 @@ class MockRedis:
 class TestSpace:
     def __enter__(self):
         self.r = redis.Redis()
-        self.r.ping()
+        try:
+            self.r.ping()
+        except:
+            pytest.skip("redis not available")
         self.key = "test-key"
         return self.key
 

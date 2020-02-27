@@ -143,45 +143,6 @@ def make_pair(id0, id1):
     return id0 < id1 and (id0, id1) or (id1, id0)
 
 
-def load_tests(ids):
-    with open("testset") as fp:
-        test_set = {}
-        num_positive = 0
-        num_negative = 0
-        skipped = set()
-        blocked = set()
-        for line in fp.readlines():
-            id0, id1, confidence = line.strip().split(" ")
-            is_dup = confidence == '1'
-            if not (ids == id0).any() or not (ids == id1).any():
-                skipped.add((id0, id1, is_dup))
-            else:
-                pair = make_pair(id0, id1)
-                if id0 != id1 and pair not in blocked:
-                    if pair in test_set:
-                        if test_set[pair] != is_dup:
-                            blocked.add(pair)
-                            was_dup = test_set.pop(pair)
-                            if was_dup:
-                                num_positive -= 1
-                            else:
-                                num_negative -= 1
-                    else:
-                        test_set[pair] = is_dup
-                        if is_dup:
-                            num_positive += 1
-                        elif not is_dup:
-                            num_negative += 1
-                        else:
-                            print("unknown confidence", confidence)
-        assert len(test_set) == num_positive + num_negative
-        print("skipped", len(skipped), "test pairs because ids were not in corpus")
-        print("blocked", len(blocked), "test pairs with contradicting labels:", blocked)
-        print(len(test_set), "test cases available")
-
-    return test_set, num_positive, num_negative
-
-
 # ==== EVALUATION =======================================================================
 # n_docs: total number of docs in corpus
 # vect_mat: matrix of size (n_docs, vector_size), stack of each document vector

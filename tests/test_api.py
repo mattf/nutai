@@ -86,6 +86,15 @@ def test_get_too_long_id():
         assert code == 404
 
 
+def test_add_to_force_resize():
+    with MockRedis():
+        nut = api.DocNut(NullModel())
+        size = nut.store.ids.shape[0]
+        for i in range(size + 1):
+            assert nut.addDocument(str(i), "filler") is None
+        assert size < nut.store.ids.shape[0]
+
+
 def test_compare0():
     with MockRedis():
         nut = api.DocNut(NullModel())

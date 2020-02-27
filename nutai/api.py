@@ -60,6 +60,14 @@ class Store:
         self._catch_up()
         return id in self.ids
 
+    def _extend(self, inc=None):
+        if not inc:
+            inc = int(max(1, self._end * .25))
+        # assert self.ids.shape[0] == self.sigs.shape[0]
+        size = self.ids.shape[0] + inc
+        self.ids.resize((size,))
+        self.sigs.resize((size, self.signature_length))
+
     def _catch_up(self):
         count = self._end
         # _end represents the number of (id,sig) pairs known locally
@@ -69,9 +77,8 @@ class Store:
         #    pull down additional global knowledge
         len_ = self.r.llen(self.key)
         while self._end < len_:
+            self._extend(len_ - self._end)
             unknown = self.r.lrange(self.key, self._end, len_)
-            self.ids.resize((len_,))
-            self.sigs.resize((len_, self.signature_length))
             for raw in unknown:
                 pair = json.loads(raw)
                 self.ids[self._end] = pair['id']
@@ -83,10 +90,7 @@ class Store:
     def add(self, id, sig):
         self._catch_up()
         if self._end == len(self.ids):
-            # if redis gave us < 4 items, _end will be too small to grow w/ *1.25
-            size = max(42, int(self._end * 1.25))
-            self.ids.resize((size,))
-            self.sigs.resize((size, self.signature_length))
+            self._extend()
         self.ids[self._end] = id
         self.sigs[self._end] = sig
         self._end += 1

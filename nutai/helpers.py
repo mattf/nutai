@@ -144,9 +144,3 @@ def get_score_from_docvecs(docvecs, ids, id0, id1):
         return 0
     else:
         return score
-
-
-def evaluate(scores, test_set, ids, threshold, get_score=get_score_from_matrix):
-    y_true = list(test_set.values())
-    y_pred = [get_score(scores, ids, id0, id1) > threshold for id0, id1 in test_set]
-    return ConfusionMatrix(*confusion_matrix(y_true, y_pred).ravel())

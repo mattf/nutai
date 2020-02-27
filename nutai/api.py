@@ -65,8 +65,8 @@ class Store:
             inc = int(max(1, self._end * .25))
         # assert self.ids.shape[0] == self.sigs.shape[0]
         size = self.ids.shape[0] + inc
-        self.ids.resize((size,))
-        self.sigs.resize((size, self.signature_length))
+        self.ids.resize((size,), refcheck=False)  # TODO: refcheck=True
+        self.sigs.resize((size, self.signature_length), refcheck=False)  # TODO: refcheck=True
 
     def _catch_up(self):
         count = self._end

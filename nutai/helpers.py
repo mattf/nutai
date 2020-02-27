@@ -113,19 +113,3 @@ def load_testset(filename, docs, verbose=True):
     if verbose:
         print("Testset Size:", len(filt_testset))
     return filt_testset
-
-
-# ==== EVALUATION =======================================================================
-# n_docs: total number of docs in corpus
-# vect_mat: matrix of size (n_docs, vector_size), stack of each document vector
-# slice_size: number of documents to compare in one go, set to maximize run-time
-#              but ensure the slices aren't too big as to crash
-def all_to_all(n_docs, vect_mat, slice_size=1000):
-    if 'sims' in globals().keys():
-        del sims
-
-    sims = np.zeros((n_docs, n_docs), dtype=np.dtype('u1'))
-    for slice_idx in tqdm(range(0, n_docs, slice_size)):
-        sims[slice_idx:slice_idx + slice_size, :] = cosine_similarity(vect_mat[slice_idx:slice_idx + slice_size],
-                                                                      vect_mat) * 255
-    return sims

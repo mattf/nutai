@@ -115,12 +115,6 @@ def load_testset(filename, docs, verbose=True):
     return filt_testset
 
 
-def load_scores():
-    with open("scores", 'rb') as fp:
-        with Timer("load scores"):
-            return msgpack.load(fp)
-
-
 # ==== EVALUATION =======================================================================
 # n_docs: total number of docs in corpus
 # vect_mat: matrix of size (n_docs, vector_size), stack of each document vector

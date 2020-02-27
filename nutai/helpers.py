@@ -120,19 +120,6 @@ def save_ids(ids):
         msgpack.dump(ids, fp)
 
 
-def save_scores(ids, score_generator):
-    # TODO: this should be sparse, w/ 37k docs only 2% of scores are non-zero
-    scores = np.ndarray((len(ids), len(ids)), dtype='uint8')
-    for i, sim in enumerate(tqdm(score_generator, desc="scoring")):
-        scores[i] = sim * 100
-    print(scores)
-
-    with Timer("saving time"):
-        save_ids(ids)
-        with open("scores", 'wb') as fp:
-            msgpack.dump(scores, fp)
-
-
 def load_scores():
     with open("scores", 'rb') as fp:
         with Timer("load scores"):

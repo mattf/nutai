@@ -13,10 +13,10 @@ def start(model, port=os.getenv('PORT')):
 
     # setup operationIds
     nut = api.DocNut(model)
-    api.similarById = nut.similarById
-    api.similarByContent = nut.similarByContent
-    api.addDocument = nut.addDocument
-    api.addDocuments = nut.addDocuments
+    api.similarById = nut.similar_by_id
+    api.similarByContent = nut.similar_by_content
+    api.addDocument = nut.add_document
+    api.addDocuments = nut.add_documents
     api.status = nut.status
 
     app.add_api('doc_nut.yaml')
@@ -41,7 +41,7 @@ def topics(port=os.getenv('PORT')):
 
     # setup operationIds
     nut = api.TopicNut()
-    api.getTopics = nut.getTopics
+    api.getTopics = nut.get_topics
 
     app.add_api('topic_nut.yaml')
 

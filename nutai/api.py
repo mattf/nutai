@@ -113,17 +113,17 @@ class DocNut:
                            signature_type=self.model.get_signature_type())
         self.model.set_store(self.store)
 
-    def addDocuments(self, body):
+    def add_documents(self, body):
         accepted = []
         rejected = []
         for doc in body:
-            if self.addDocument(doc['id'], doc['content']):
+            if self.add_document(doc['id'], doc['content']):
                 rejected.append(doc['id'])
             else:
                 accepted.append(doc['id'])
         return {"accepted": accepted, "rejected": rejected}
 
-    def addDocument(self, id, body):
+    def add_document(self, id, body):
         if len(id) > 42:
             return 'Id too long', 400
 
@@ -132,7 +132,7 @@ class DocNut:
 
         self.store.add(id, self.model.calculate_signature(body))
 
-    def similarById(self, id):
+    def similar_by_id(self, id):
         if id not in self.store:
             return 'Not Found', 404
 
@@ -144,7 +144,7 @@ class DocNut:
                 for id, score in zip(self.store.ids[hits],
                                      (scores[hits]*100).astype(int).tolist())]
 
-    def similarByContent(self, content):
+    def similar_by_content(self, content):
         sig = self.model.calculate_signature(content)
         scores = self.model.calculate_similarity(sig)
         hits = scores > self.model.get_threshold()
@@ -166,5 +166,5 @@ class TopicNut:
     def __init__(self):
         pass
 
-    def getTopics(self, document):
+    def get_topics(self, document):
         return ['bonus0', 'bogus topic', 'who_knows']

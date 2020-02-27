@@ -129,6 +129,3 @@ def all_to_all(n_docs, vect_mat, slice_size=1000):
         sims[slice_idx:slice_idx + slice_size, :] = cosine_similarity(vect_mat[slice_idx:slice_idx + slice_size],
                                                                       vect_mat) * 255
     return sims
-
-
-ConfusionMatrix = namedtuple('ConfusionMatrix', ['tn', 'fp', 'fn', 'tp'])

@@ -132,15 +132,3 @@ def all_to_all(n_docs, vect_mat, slice_size=1000):
 
 
 ConfusionMatrix = namedtuple('ConfusionMatrix', ['tn', 'fp', 'fn', 'tp'])
-
-
-def get_score_from_matrix(scores, ids, id0, id1):
-    return scores[ids == id0, ids == id1][0]
-
-
-def get_score_from_docvecs(docvecs, ids, id0, id1):
-    score = int((1 - docvecs.distance(id0, id1)) * 100)
-    if score < 0:
-        return 0
-    else:
-        return score

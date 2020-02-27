@@ -139,10 +139,6 @@ def load_scores():
             return msgpack.load(fp)
 
 
-def make_pair(id0, id1):
-    return id0 < id1 and (id0, id1) or (id1, id0)
-
-
 # ==== EVALUATION =======================================================================
 # n_docs: total number of docs in corpus
 # vect_mat: matrix of size (n_docs, vector_size), stack of each document vector

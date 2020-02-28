@@ -2,7 +2,6 @@ from collections import namedtuple
 import json
 
 from gensim.utils import simple_preprocess
-from mfoops.timer import Timer
 import msgpack
 import msgpack_numpy
 import numpy as np

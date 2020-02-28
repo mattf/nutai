@@ -132,6 +132,11 @@ class DocNut:
 
         self.store.add(id, self.model.calculate_signature(body))
 
+    def _generate_similar_output(self, hits, scores):
+        return [{"id": id_, "score": score}
+                for id_, score in zip(self.store.ids[hits],
+                                      (scores[hits]*100).astype(int).tolist())]
+
     def similar_by_id(self, id):
         if id not in self.store:
             return 'Not Found', 404
@@ -140,18 +145,14 @@ class DocNut:
         scores = self.model.calculate_similarity(sig)
         hits = scores > self.model.get_threshold()
 
-        return [{"id": id, "score": score}
-                for id, score in zip(self.store.ids[hits],
-                                     (scores[hits]*100).astype(int).tolist())]
+        return self._generate_similar_output(hits, scores)
 
     def similar_by_content(self, content):
         sig = self.model.calculate_signature(content)
         scores = self.model.calculate_similarity(sig)
         hits = scores > self.model.get_threshold()
 
-        return [{"id": id, "score": score}
-                for id, score in zip(self.store.ids[hits],
-                                     (scores[hits]*100).astype(int).tolist())]
+        return self._generate_similar_output(hits, scores)
 
     def status(self):
         return {'_end': self.store._end,

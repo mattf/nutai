@@ -2,7 +2,6 @@ from collections import namedtuple
 import json
 
 from gensim.utils import simple_preprocess
-import numpy as np
 from tqdm.auto import tqdm
 
 

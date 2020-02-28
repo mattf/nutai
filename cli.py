@@ -97,7 +97,7 @@ def train_d2v(documents, stopwords, train_ids, labeled, model, iterations):
     # gensim does not allow update=True if there was no previous vocab, which seems like poor api design
     d2v.build_vocab(tagged_docs, update=os.path.exists(model))
 
-    for i in range(iterations):
+    for _ in range(iterations):
         # gensim marks total_examples and epochs as optional in its api docs and throws errors if they are not present
         d2v.train(tagged_docs,
                   total_examples=d2v.corpus_count,

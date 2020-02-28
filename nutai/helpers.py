@@ -2,14 +2,10 @@ from collections import namedtuple
 import json
 
 from gensim.utils import simple_preprocess
-import msgpack
-import msgpack_numpy
 import numpy as np
 from sklearn.metrics import confusion_matrix
 from tqdm.auto import tqdm
 from sklearn.metrics.pairwise import cosine_similarity
-
-msgpack_numpy.patch()
 
 
 # ==== DATA INPUT =======================================================================

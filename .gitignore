@@ -1,0 +1,12 @@
+attic
+*.csv
+dist
+.eggs
+.flake8
+*.egg-info
+*.json
+*.mm
+*.model*
+__pycache__
+*.tgz
+.venv

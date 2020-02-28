@@ -3,7 +3,6 @@ import json
 
 from gensim.utils import simple_preprocess
 import numpy as np
-from sklearn.metrics import confusion_matrix
 from tqdm.auto import tqdm
 from sklearn.metrics.pairwise import cosine_similarity
 

@@ -1,4 +1,3 @@
-from collections import namedtuple
 import json
 
 from gensim.utils import simple_preprocess

@@ -20,7 +20,7 @@ class MockRedis:
         self.real_redis = redis.Redis
         redis.Redis = lambda: fake_redis
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, type_, value, traceback):
         redis.Redis = self.real_redis
 
 
@@ -34,7 +34,7 @@ class TestSpace:
         self.key = "test-key"
         return self.key
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, type_, value, traceback):
         self.r.delete(self.key)
 
 

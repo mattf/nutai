@@ -153,4 +153,4 @@ def test_parallel_add_second_document():
 
 def test_get_topics_exists():
     nut = api.TopicNut()
-    assert type(nut.get_topics("nothing special")) is list
+    assert isinstance(nut.get_topics("nothing special"), list)

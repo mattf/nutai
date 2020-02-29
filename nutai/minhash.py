@@ -22,7 +22,7 @@ class Model:
         return .42
 
     def calculate_signature(self, text):
-        if type(text) == str:
+        if isinstance(text, str):
             text = text.split(" ")
         return minhash.calculate_signature(list(minhash.generate_shingles(text)), self.hash_funcs)
 

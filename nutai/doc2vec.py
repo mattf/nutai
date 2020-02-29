@@ -19,7 +19,7 @@ class Model:
         return self.model.threshold
 
     def calculate_signature(self, text):
-        if type(text) == str:
+        if isinstance(text, str):
             text = text.split(" ")
         return self.model.infer_vector(text, epochs=100)
 

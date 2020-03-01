@@ -87,14 +87,14 @@ class Store:
             len_ = self.r.llen(self.key)  # TODO: find a way to avoid infinite loop
         return self._end - count
 
-    def add(self, id, sig):
+    def add(self, id_, sig):
         self._catch_up()
         if self._end == len(self.ids):
             self._extend()
-        self.ids[self._end] = id
+        self.ids[self._end] = id_
         self.sigs[self._end] = sig
         self._end += 1
-        i = self.r.rpush(self.key, json.dumps({"id": id, "sig": sig.tolist()}))
+        i = self.r.rpush(self.key, json.dumps({"id": id_, "sig": sig.tolist()}))
         # TODO: _end should never be > i
         # TODO: handle _end < i, aka there was an addition between start of
         #       this method and the rpush need to catch up, and it's ok if
@@ -123,25 +123,25 @@ class DocNut:
                 accepted.append(doc['id'])
         return {"accepted": accepted, "rejected": rejected}
 
-    def add_document(self, id, body):
-        if len(id) > 42:
+    def add_document(self, id_, body):
+        if len(id_) > 42:
             return 'Id too long', 400
 
-        if id in self.store:
+        if id_ in self.store:
             return 'Document already exists', 409
 
-        self.store.add(id, self.model.calculate_signature(body))
+        self.store.add(id_, self.model.calculate_signature(body))
 
     def _generate_similar_output(self, hits, scores):
         return [{"id": id_, "score": score}
                 for id_, score in zip(self.store.ids[hits],
                                       (scores[hits]*100).astype(int).tolist())]
 
-    def similar_by_id(self, id):
-        if id not in self.store:
+    def similar_by_id(self, id_):
+        if id_ not in self.store:
             return 'Not Found', 404
 
-        sig = self.store.sigs[self.store.ids == id][0]
+        sig = self.store.sigs[self.store.ids == id_][0]
         scores = self.model.calculate_similarity(sig)
         hits = scores > self.model.get_threshold()
 

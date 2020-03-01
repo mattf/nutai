@@ -5,7 +5,7 @@ setuptools.setup(
     version="0.4.0",
     author="Matthew Farrellee",
     author_email="matt@cs.wisc.edu",
-    descrption="A playground for document indexing and search",
+    description="A playground for document indexing and search",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     url="https://github.com/mattf/nutai",

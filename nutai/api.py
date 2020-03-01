@@ -56,9 +56,9 @@ class Store:
         self.sigs = np.ndarray((len_, self.signature_length), dtype=signature_type)
         print("loaded", self._catch_up(), "signatures")
 
-    def __contains__(self, id):
+    def __contains__(self, id_):
         self._catch_up()
-        return id in self.ids
+        return id_ in self.ids
 
     def _extend(self, inc=None):
         if not inc:

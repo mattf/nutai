@@ -6,7 +6,7 @@ from gensim.models.doc2vec import Doc2Vec, TaggedDocument
 import multiprocessing
 import msgpack
 from minhash import approx_jaccard_score
-from nutai.helpers import load_docs, load_testset, simple_preprocess_and_filter_stopwords
+from nutai.helpers import load_docs, load_testset, combine_issue_and_body, simple_preprocess_and_filter_stopwords
 from scipy.spatial.distance import cosine
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
@@ -73,7 +73,8 @@ def d2v_predict(labels, d2v, docs):
 def train_d2v(documents, stopwords, train_ids, labeled, model, iterations):
     with open(stopwords, 'rb') as fp:
         stops = set(msgpack.load(fp))
-    docs = load_docs(documents, process_text=simple_preprocess_and_filter_stopwords(stops))
+    filter_processor = simple_preprocess_and_filter_stopwords(stops)
+    docs = load_docs(documents, process_text=lambda doc: filter_processor(combine_issue_and_body(doc)))
     with open(train_ids, 'rb') as fp:
         ids = msgpack.load(fp)
         train_docs = {id_.decode(): docs[id_.decode()] for id_ in ids}
@@ -162,7 +163,8 @@ def test_d2v(documents, labeled, model):
 def test_minhash(documents, stopwords, labeled):
     with open(stopwords, 'rb') as fp:
         stops = set(msgpack.load(fp))
-    docs = load_docs(documents, process_text=simple_preprocess_and_filter_stopwords(stops))
+    filter_processor = simple_preprocess_and_filter_stopwords(stops)
+    docs = load_docs(documents, process_text=lambda doc: filter_processor(combine_issue_and_body(doc)))
     labels = load_testset(labeled, docs)
     model = nutai.minhash.Model()
 

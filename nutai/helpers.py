@@ -6,7 +6,7 @@ from tqdm.auto import tqdm
 
 # ==== DATA INPUT =======================================================================
 
-def load_docs(filename, process_text=simple_preprocess):
+def load_docs(filename, process_text=lambda doc: simple_preprocess(combine_issue_and_body(doc))):
     with open(filename) as fp:
         data = json.load(fp)
         docs = {
@@ -15,12 +15,16 @@ def load_docs(filename, process_text=simple_preprocess):
             if 'issue' in doc or 'body' in doc
         }
         for doc in tqdm(docs.values(), desc='adding text'):
-            doc['text'] = process_text(''.join(doc.get('issue', '')) + ' ' + ''.join(doc.get('body', '')))
+            doc['text'] = process_text(doc)
     return docs
 
 
 def simple_preprocess_and_filter_stopwords(stopwords):
     return lambda text: [word for word in simple_preprocess(text) if word not in stopwords]
+
+
+def combine_issue_and_body(doc):
+    return ' '.join(doc.get('issue', []) + doc.get('body', []))
 
 
 # filename contents: csv file with three columns, id_a, id_b, label_ab, corresponding to testset duplicate pairs

@@ -27,6 +27,12 @@ def combine_issue_and_body(doc):
     return ' '.join(doc.get('issue', []) + doc.get('body', []))
 
 
+def combine_issue_and_body_filter_labels(doc):
+    content = doc.get('issue', []) + doc.get('body', [])
+    labels = set(doc.get('tag', []) + doc.get('product', []))
+    return ' '.join(line for line in content if line not in labels)
+
+
 # filename contents: csv file with three columns, id_a, id_b, label_ab, corresponding to testset duplicate pairs
 # docs contents: dict keyed by training set doc ids
 # returns set of tuples, each in the format: (id_a (str), id_b (str), label_ab (int))

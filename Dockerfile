@@ -5,4 +5,5 @@ RUN pip install -r requirements.txt
 
 COPY nutai/* nutai/
 
-CMD [ "python", "-m", "nutai", "minhash" ]
+ENTRYPOINT [ "python", "-m", "nutai" ]
+CMD [ "minhash" ]

@@ -5,14 +5,14 @@
 ## Build
 
 ```bash
-podman build -t nut:latest .
+podman build -t nutai:latest .
 ```
 
 ## Run
 
 ```bash
-podman run --name nut-redis -p 6379:6379 -d redis
-podman run --name nut -p 5000:5000 -d nut
+podman run --name nutai-redis -p 6379:6379 -d redis
+podman run --name nutai -p 5000:5000 -d nutai
 ```
 
 ## Use

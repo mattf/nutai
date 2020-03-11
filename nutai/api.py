@@ -123,25 +123,25 @@ class DocNut:
                 accepted.append(doc['id'])
         return {"accepted": accepted, "rejected": rejected}
 
-    def add_document(self, id_, body):
-        if len(id_) > 42:
+    def add_document(self, id, body):  # noqa: A002
+        if len(id) > 42:
             return 'Id too long', 400
 
-        if id_ in self.store:
+        if id in self.store:
             return 'Document already exists', 409
 
-        self.store.add(id_, self.model.calculate_signature(body))
+        self.store.add(id, self.model.calculate_signature(body))
 
     def _generate_similar_output(self, hits, scores):
         return [{"id": id_, "score": score}
                 for id_, score in zip(self.store.ids[hits],
                                       (scores[hits]*100).astype(int).tolist())]
 
-    def similar_by_id(self, id_):
-        if id_ not in self.store:
+    def similar_by_id(self, id):  # noqa: A002
+        if id not in self.store:
             return 'Not Found', 404
 
-        sig = self.store.sigs[self.store.ids == id_][0]
+        sig = self.store.sigs[self.store.ids == id][0]
         scores = self.model.calculate_similarity(sig)
         hits = scores > self.model.get_threshold()
 

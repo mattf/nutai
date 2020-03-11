@@ -8,7 +8,7 @@ import nutai.minhash
 import nutai.doc2vec
 
 
-def start(model, port=os.getenv('PORT')):
+def create_app(model):
     app = connexion.FlaskApp(__name__)
 
     # setup operationIds
@@ -21,6 +21,11 @@ def start(model, port=os.getenv('PORT')):
 
     app.add_api('doc_nut.yaml')
 
+    return app
+
+
+def start(model, port=os.getenv('PORT')):
+    app = create_app(model)
     app.run(port)
 
 

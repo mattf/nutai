@@ -5,13 +5,14 @@ import pytest
 
 from nutai import minhash
 from nutai.__main__ import create_app
+from test_api import MockRedis
 
-# TODO: make this work when redis is available
 
 @pytest.fixture
 def client():
-    app = create_app(minhash.Model())
-    return app.app.test_client()
+    with MockRedis():
+        app = create_app(minhash.Model())
+        yield app.app.test_client()
 
 
 def test_get_unknown_document(client):

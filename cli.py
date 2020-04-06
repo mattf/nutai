@@ -68,7 +68,7 @@ def d2v_predict(labels, d2v, docs):
 @click.argument('stopwords', type=click.Path(exists=True, dir_okay=False))
 @click.argument('train-ids', type=click.Path(exists=True, dir_okay=False))
 @click.argument('labeled', type=click.Path(exists=True, dir_okay=False))
-@click.argument('model')
+@click.argument('model', type=click.Path(exists=False, dir_okay=False))
 @click.option('--iterations', default=1, type=click.INT)
 @click.option('--window', default=1, type=click.INT)
 @click.option('--vector-size', default=256, type=click.INT)
@@ -87,32 +87,25 @@ def train_d2v(documents, stopwords, train_ids, labeled, model, iterations, windo
                        tags=[id_]) for id_, doc in train_docs.items()
     ]
 
-    if os.path.exists(model):
-        print("training an existing model:", model)
-        d2v = Doc2Vec.load(model)
-    else:
-        print("training a new model")
-        d2v = Doc2Vec(dm=0,
-                      window=window,
-                      vector_size=vector_size,
-                      workers=multiprocessing.cpu_count() - 1)
+    d2v = Doc2Vec(dm=0,
+                  window=window,
+                  vector_size=vector_size,
+                  workers=multiprocessing.cpu_count() - 1)
 
     # gensim does not allow update=True if there was no previous vocab, which seems like poor api design
     d2v.build_vocab(tagged_docs, update=os.path.exists(model))
 
-    for _ in range(iterations):
-        # gensim marks total_examples and epochs as optional in its api docs and throws errors if they are not present
-        d2v.train(tagged_docs,
-                  total_examples=d2v.corpus_count,
-                  epochs=1)
+    d2v.train(tagged_docs,
+              total_examples=d2v.corpus_count,
+              epochs=iterations)
 
-        true, pred = d2v_predict(labels, d2v, docs)
-        d2v.threshold = calculate_best_threshold(pred, labels)
+    true, pred = d2v_predict(labels, d2v, docs)
+    d2v.threshold = calculate_best_threshold(pred, labels)
 
-        print("threshold:", d2v.threshold)
-        print_confusion_matrix(confusion_matrix(true, [p > d2v.threshold for p in pred]))
+    print("threshold:", d2v.threshold)
+    print_confusion_matrix(confusion_matrix(true, [p > d2v.threshold for p in pred]))
 
-        d2v.save(model)
+    d2v.save(model)
 
 
 def calculate_best_threshold(pred, labels):

@@ -70,7 +70,9 @@ def d2v_predict(labels, d2v, docs):
 @click.argument('labeled', type=click.Path(exists=True, dir_okay=False))
 @click.argument('model')
 @click.option('--iterations', default=1, type=click.INT)
-def train_d2v(documents, stopwords, train_ids, labeled, model, iterations):
+@click.option('--window', default=1, type=click.INT)
+@click.option('--vector-size', default=256, type=click.INT)
+def train_d2v(documents, stopwords, train_ids, labeled, model, iterations, window, vector_size):
     with open(stopwords, 'rb') as fp:
         stops = set(msgpack.load(fp))
     filter_processor = simple_preprocess_and_filter_stopwords(stops)
@@ -91,8 +93,8 @@ def train_d2v(documents, stopwords, train_ids, labeled, model, iterations):
     else:
         print("training a new model")
         d2v = Doc2Vec(dm=0,
-                      window=1,
-                      vector_size=256,
+                      window=window,
+                      vector_size=vector_size,
                       workers=multiprocessing.cpu_count() - 1)
 
     # gensim does not allow update=True if there was no previous vocab, which seems like poor api design

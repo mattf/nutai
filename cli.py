@@ -84,7 +84,7 @@ def train_d2v(documents, stopwords, train_ids, labeled, model, iterations, windo
 
     tagged_docs = [
         TaggedDocument(doc['text'],
-                       tags=[id_] + doc.get('tag', [])) for id_, doc in train_docs.items()
+                       tags=[id_]) for id_, doc in train_docs.items()
     ]
 
     if os.path.exists(model):
